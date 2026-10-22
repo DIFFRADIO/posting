@@ -21,22 +21,39 @@
 }}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:'Archivo',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
-.wrap{max-width:980px;margin:0 auto;padding:38px 16px 80px}
-.mast{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;padding-bottom:15px;border-bottom:2px solid var(--ink)}
+.wrap{max-width:860px;margin:0 auto;padding:34px 16px 80px}
+.mast{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 22px;padding-bottom:14px;border-bottom:2px solid var(--ink)}
 .eyebrow{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 7px}
-h1{font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(26px,4.5vw,36px);letter-spacing:-.02em;margin:0;line-height:1.05}
+h1{font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(25px,4.5vw,34px);letter-spacing:-.02em;margin:0;line-height:1.05}
 .tally{margin-left:auto;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
-.tally b{display:block;font-family:'Sora',sans-serif;font-size:21px;color:var(--ink);text-transform:none;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-h2{font-family:'Sora',sans-serif;font-weight:600;font-size:19px;margin:34px 0 0;padding-bottom:7px;border-bottom:1px solid var(--ink)}
+.tally b{display:block;font-family:'Sora',sans-serif;font-size:20px;color:var(--ink);text-transform:none;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.back{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);text-decoration:none;margin-bottom:12px}
+.back:hover{color:var(--accent)}
+h2{font-family:'Sora',sans-serif;font-weight:600;font-size:18px;margin:32px 0 0;padding-bottom:7px;border-bottom:1px solid var(--ink)}
 h3{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);margin:22px 0 2px}
-.tabs{display:flex;gap:2px;margin:18px 0 0;border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:2px;margin:16px 0 0;border-bottom:1px solid var(--line)}
 .tabs button{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:10px 14px;background:none;border:0;border-bottom:2px solid transparent;color:var(--ink3);cursor:pointer}
 .tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
-.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:18px 0 4px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0 4px}
 .bar .sp{margin-left:auto}
-select,input[type=time],input[type=text],textarea{font-family:'Archivo',sans-serif;font-size:14px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:7px 8px}
+select,input[type=time],input[type=date],input[type=text],input[type=number],textarea{font-family:'Archivo',sans-serif;font-size:14px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:7px 8px}
 select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+
+/* artist index */
+.alist{margin-top:8px}
+.acard{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius);background:var(--surface);padding:15px 16px;margin:11px 0}
+.acard:hover{border-color:var(--accent)}
+.acard .an{display:flex;flex-wrap:wrap;align-items:baseline;gap:9px}
+.acard .an b{font-family:'Sora',sans-serif;font-weight:600;font-size:21px;letter-spacing:-.02em}
+.acard .an em{font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);border:1px solid var(--line);padding:2px 6px;border-radius:2px}
+.acard .an em.next{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
+.acard .ad{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink2);margin-top:5px}
+.acard .as{display:flex;flex-wrap:wrap;gap:16px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.acard .as div{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.acard .as b{display:block;font-family:'Sora',sans-serif;font-size:17px;color:var(--ink);text-transform:none;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+
+/* clip rows */
 .row{display:grid;grid-template-columns:24px 1fr 92px 170px;gap:0 14px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line)}
 .n{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink3);text-align:right;font-variant-numeric:tabular-nums}
 .nm b{display:block;font-weight:500;font-size:15.5px}
@@ -51,44 +68,49 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.on:hover{color:#fff}
-.day{margin:26px 0 0}
-.dayhd{display:flex;align-items:baseline;gap:10px;padding:0 0 6px;border-bottom:1px solid var(--ink)}
+
+/* board */
+.day{margin:24px 0 0}
+.dayhd{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;padding:0 0 6px;border-bottom:1px solid var(--ink)}
 .dayhd b{font-family:'Sora',sans-serif;font-weight:600;font-size:17px}
 .dayhd em{font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
 .dayhd .sp{margin-left:auto}
 .slot{border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:12px;margin:10px 0}
 .slot.q{border-left-color:var(--accent);background:var(--accent-soft)}
-.slot.held{border-left-color:var(--ink3);opacity:.75}
+.slot.held{border-left-color:var(--ink3);opacity:.8}
 .slot.skipped{opacity:.45}
 .sl1{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:9px}
-.plat{font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;padding:3px 7px;border-radius:2px;border:1px solid var(--ink);color:var(--ink)}
 .fld{margin:8px 0 0}
 .fld label{display:flex;align-items:baseline;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:3px}
-.fld label i{font-style:normal;margin-left:auto;font-variant-numeric:tabular-nums}
+.fld label i{font-style:normal;font-variant-numeric:tabular-nums}
 .fld label i.over{color:var(--accent)}
+.fld label .sp{margin-left:auto}
 .fld input[type=text],.fld textarea,.fld select{width:100%}
-.fld textarea{min-height:64px;resize:vertical;line-height:1.4}
-.empty{color:var(--ink2);font-size:13.5px;padding:14px 2px;border-bottom:1px solid var(--line)}
+.fld textarea{min-height:66px;resize:vertical;line-height:1.4}
+.empty{color:var(--ink2);font-size:13.5px;padding:13px 2px;border-bottom:1px solid var(--line)}
+.setup{border:1px dashed var(--line);border-radius:var(--radius);padding:14px;margin:16px 0 0}
+.setup p{margin:0 0 10px;color:var(--ink2);font-size:13.5px}
+
 .gate{max-width:360px;margin:16vh auto;padding:0 16px;text-align:center}
 .gate p{color:var(--ink2);font-size:14px;margin:10px 0 18px}
 .gate input{width:100%;padding:11px 12px;font-family:'IBM Plex Mono',monospace;font-size:15px;text-align:center}
 .gate button{margin-top:10px;width:100%;padding:11px;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:var(--radius);cursor:pointer}
 .err{color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:11.5px;margin-top:12px;min-height:16px}
-.muted{color:var(--ink2);font-size:13px;margin:13px 0 0}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0 0}
+.muted{color:var(--ink2);font-size:13px;margin:13px 0 0;max-width:72ch}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0 0}
 .card{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:12px}
-.card b{display:block;font-family:'Sora',sans-serif;font-size:25px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.card b{display:block;font-family:'Sora',sans-serif;font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
 .card span{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
 .find{border-top:1px solid var(--line);padding:13px 0}
 .find b{display:block;font-weight:600;margin-bottom:3px}
 .find p{margin:0;color:var(--ink2);font-size:13.5px;max-width:72ch}
-.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.07em;text-transform:uppercase;padding:9px 15px;border-radius:var(--radius);opacity:0;pointer-events:none;transition:opacity .18s}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.07em;text-transform:uppercase;padding:9px 15px;border-radius:var(--radius);opacity:0;pointer-events:none;transition:opacity .18s;z-index:9}
 .toast.show{opacity:1}
-.foot{margin-top:42px;padding-top:18px;border-top:1px solid var(--line);color:var(--ink2);font-size:13px}
+.foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:var(--ink2);font-size:13px}
 .foot p{margin:0 0 7px;max-width:70ch}
 .foot button{background:none;border:0;color:var(--accent);font:inherit;text-decoration:underline;cursor:pointer;padding:0}
 @media(max-width:640px){
-  .wrap{padding-top:26px}
+  .wrap{padding-top:24px}
   .row{grid-template-columns:22px 1fr;row-gap:9px}
   .dur,.act{grid-column:2}.act{justify-content:flex-start}
   .tabs button{padding:9px 10px;font-size:10px}
@@ -103,67 +125,63 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var LSTAB = "diff_posting_tab";
-var app = document.getElementById("app");
 
-var code = null, clips = [], posts = [], tab = "schedule", weekOff = 0;
-var fBand = "", fArtist = "", fSource = "", fUnused = false;
+var code=null, clips=[], posts=[], releases=[];
+var view="home", vArtist=null, vTab="board";
+var fBand="", fSource="", fUnused=false;
 
 /* ---------- plumbing ---------- */
 function rpc(fn, body){
-  return fetch(SB + "/rest/v1/rpc/" + fn, {
-    method:"POST",
-    headers:{ "apikey":KEY, "Authorization":"Bearer "+KEY, "Content-Type":"application/json" },
-    body: JSON.stringify(body)
-  }).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); });
+  return fetch(SB+"/rest/v1/rpc/"+fn,{method:"POST",
+    headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},
+    body:JSON.stringify(body)}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); });
 }
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 function band(s){ if(!s) return null; s=+s;
   if(s<15) return {k:"",t:"under 15"};
   if(s<=25) return {k:"good",t:"15–25"};
   return {k:"",t:"over 25"}; }
-function clipUrl(c){
-  if(!c) return null;
+function clipUrl(c){ if(!c) return null;
   if(c.dropbox_url) return c.dropbox_url;
-  if(c.dropbox_path) return "https://www.dropbox.com/preview" + encodeURI(c.dropbox_path);
-  return null;
-}
-var SRC  = {interview:"Interview", performance:"Performance", guest_mix:"Guest mix", station:"Station", other:"Other"};
-var PLAT = {youtube:"YouTube", tiktok:"TikTok", instagram:"Instagram"};
-var DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-var MONS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  if(c.dropbox_path) return "https://www.dropbox.com/preview"+encodeURI(c.dropbox_path);
+  return null; }
+var SRC={interview:"Interview",performance:"Performance",guest_mix:"Guest mix",station:"Station",other:"Other"};
+var PLAT={youtube:"YouTube",tiktok:"TikTok",instagram:"Instagram"};
+var DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+var MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var STD=[["09:00","youtube"],["12:00","instagram"],["17:00","youtube"],["18:00","tiktok"],["20:00","tiktok"]];
 
-var tEl = document.getElementById("toast"), tT = null;
+var tEl=document.getElementById("toast"), tT=null;
 function toast(m){ tEl.textContent=m; tEl.classList.add("show");
   clearTimeout(tT); tT=setTimeout(function(){tEl.classList.remove("show");},1500); }
 function copy(txt,label){
   if(!txt){ toast("nothing to copy"); return; }
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(txt).then(function(){toast(label+" copied");},function(){fallback(txt,label);});
-  } else fallback(txt,label);
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(txt).then(function(){toast(label+" copied");},function(){fb(txt,label);});
+  else fb(txt,label);
 }
-function fallback(txt,label){
+function fb(txt,label){
   var a=document.createElement("textarea"); a.value=txt;
   a.style.position="fixed"; a.style.opacity="0"; document.body.appendChild(a); a.select();
-  try{ document.execCommand("copy"); toast(label+" copied"); }catch(e){ toast("copy failed"); }
+  try{document.execCommand("copy"); toast(label+" copied");}catch(e){toast("copy failed");}
   document.body.removeChild(a);
 }
 
-/* ---------- dates ---------- */
-function mondayOf(d){ var x=new Date(d); var k=(x.getDay()+6)%7; x.setHours(0,0,0,0); x.setDate(x.getDate()-k); return x; }
-function addDays(d,n){ var x=new Date(d); x.setDate(x.getDate()+n); return x; }
-function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function label(d){ return DAYS[(d.getDay()+6)%7]+" "+d.getDate()+" "+MONS[d.getMonth()]; }
-function tsLocal(dayIso, hhmm){ return dayIso+"T"+(hhmm||"12:00")+":00"; }
-/* scheduled_for is written as a naive wall-clock string and read back the same way.
-   Slice it rather than parsing through Date, so the browser timezone never shifts it. */
-function hhmm(ts){ if(!ts) return ""; return String(ts).replace(" ","T").slice(11,16); }
-function dayIsoOf(ts){ if(!ts) return null; return String(ts).replace(" ","T").slice(0,10); }
+/* ---------- dates: wall-clock strings, never parsed through Date ---------- */
+function hhmm(ts){ return ts? String(ts).replace(" ","T").slice(11,16) : ""; }
+function dayIsoOf(ts){ return ts? String(ts).replace(" ","T").slice(0,10) : null; }
+function tsLocal(d,t){ return d+"T"+(t||"12:00")+":00"; }
+function fmtDay(di){
+  if(!di) return "";
+  var p=di.split("-"), d=new Date(+p[0],+p[1]-1,+p[2]);
+  return DAYS[(d.getDay()+6)%7]+" "+(+p[2])+" "+MONS[+p[1]-1];
+}
+function todayIso(){ var d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 
 /* ---------- gate + load ---------- */
 function gate(msg){
-  app.innerHTML =
-    '<div class="gate"><p class="eyebrow">DIFF Radio</p><h1>Posting</h1>'+
+  app.innerHTML='<div class="gate"><p class="eyebrow">DIFF Radio</p><h1>Posting</h1>'+
     '<p>Enter your access code.</p>'+
     '<input id="c" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="code">'+
     '<button id="go">Open</button><div class="err">'+esc(msg||"")+'</div></div>';
@@ -172,343 +190,361 @@ function gate(msg){
   document.getElementById("go").onclick=go;
   i.onkeydown=function(e){ if(e.key==="Enter") go(); };
 }
+var app=document.getElementById("app");
 function load(fromGate){
-  Promise.all([ rpc("posting_bank",{p_code:code}), rpc("posting_posts",{p_code:code}) ])
-  .then(function(res){
-    var rows = res[0];
-    if(!rows || !rows.length){
-      localStorage.removeItem(LS); code=null; gate(fromGate ? "Not recognised." : ""); return;
-    }
-    clips = rows; posts = res[1] || []; render();
+  Promise.all([rpc("posting_bank",{p_code:code}),rpc("posting_posts",{p_code:code}),rpc("posting_releases",{p_code:code})])
+  .then(function(r){
+    if(!r[0]||!r[0].length){ localStorage.removeItem(LS); code=null; gate(fromGate?"Not recognised.":""); return; }
+    clips=r[0]; posts=r[1]||[]; releases=r[2]||[]; route();
   }).catch(function(){
     app.innerHTML='<div class="wrap"><p class="muted">Couldn’t reach the database. Check your connection and reload.</p></div>';
   });
 }
-function refreshPosts(){
-  return rpc("posting_posts",{p_code:code}).then(function(r){ posts=r||[]; });
+function refresh(){ return rpc("posting_posts",{p_code:code}).then(function(r){posts=r||[];}); }
+
+/* ---------- routing ---------- */
+function route(){
+  var h=(location.hash||"#/").replace(/^#/,"");
+  var m=h.match(/^\/artist\/([^\/]+)(?:\/(\w+))?/);
+  if(m){ view="artist"; vArtist=decodeURIComponent(m[1]); vTab=m[2]||"board"; }
+  else if(h.indexOf("/numbers")===0){ view="numbers"; }
+  else { view="home"; vArtist=null; }
+  render();
 }
+window.addEventListener("hashchange",route);
+
+/* ---------- model helpers ---------- */
+function rel(a){ for(var i=0;i<releases.length;i++) if(releases[i].artist_name===a) return releases[i]; return {}; }
+function artists(){
+  var s={}; clips.forEach(function(c){s[c.artist_name]=1;});
+  releases.forEach(function(r){s[r.artist_name]=1;});
+  posts.forEach(function(p){s[p.artist_name]=1;});
+  return Object.keys(s).sort(function(a,b){
+    var ra=rel(a), rb=rel(b);
+    var ka=ra.interview_date||ra.perf_date||"0000", kb=rb.interview_date||rb.perf_date||"0000";
+    if(ka!==kb) return kb<ka?-1:1;
+    return a<b?-1:1;
+  });
+}
+function clipsOf(a){ return clips.filter(function(c){return c.artist_name===a;}); }
+function postsOf(a){ return posts.filter(function(p){return p.artist_name===a;}); }
 
 /* ---------- shell ---------- */
 function render(){
-  var h = '<div class="wrap">'+mast()+tabsBar();
-  if(tab==="bank")     h += bankView();
-  if(tab==="schedule") h += scheduleView();
-  if(tab==="numbers")  h += numbersView();
-  h += '<div class="foot"><p>Ticking a slot <b>queued</b> is the record — there is no second step. '+
-       'Queued means it is sitting in the scheduler, not that it has gone out.</p>'+
-       '<p><button id="forget">Forget this device</button></p></div></div>';
-  app.innerHTML = h;
+  var h='<div class="wrap">';
+  if(view==="home")    h+=homeView();
+  if(view==="artist")  h+=artistView();
+  if(view==="numbers") h+=numbersView();
+  h+='<div class="foot"><p>Ticking a slot <b>queued</b> is the record — there is no second step. '+
+     'Queued means it is sitting in the scheduler, not that it has gone out.</p>'+
+     '<p><button id="forget">Forget this device</button></p></div></div>';
+  app.innerHTML=h;
   document.getElementById("forget").onclick=function(){ localStorage.removeItem(LS); location.reload(); };
-  document.querySelectorAll("[data-tab]").forEach(function(b){
-    b.onclick=function(){ tab=b.getAttribute("data-tab"); localStorage.setItem(LSTAB,tab); render(); };
-  });
-  if(tab==="bank")     wireBank();
-  if(tab==="schedule") wireSchedule();
+  if(view==="artist"){ if(vTab==="board") wireBoard(); else wireClips(); }
 }
-function mast(){
-  var t;
-  if(tab==="bank"){
-    var done = clips.filter(function(c){return c.duration_seconds;}).length;
-    t = '<b>'+done+' / '+clips.length+'</b>durations in';
-  } else if(tab==="schedule"){
-    var wk = weekPosts();
-    var q = wk.filter(function(p){return p.status==="queued";}).length;
-    t = '<b>'+q+' / '+wk.length+'</b>queued this week';
-  } else {
-    t = '<b>'+posts.length+'</b>posts recorded';
-  }
-  return '<header class="mast"><div><p class="eyebrow">DIFF Radio · social</p><h1>Posting</h1></div>'+
-         '<div class="tally">'+t+'</div></header>';
-}
-function tabsBar(){
-  function b(k,l){ return '<button data-tab="'+k+'"'+(tab===k?' class="on"':'')+'>'+l+'</button>'; }
-  return '<div class="tabs">'+b("schedule","Schedule")+b("bank","Clip bank")+b("numbers","Numbers")+'</div>';
+function mast(eyebrow,title,tallyNum,tallyLabel){
+  return '<header class="mast"><div><p class="eyebrow">'+esc(eyebrow)+'</p><h1>'+esc(title)+'</h1></div>'+
+    (tallyNum!=null?'<div class="tally"><b>'+esc(tallyNum)+'</b>'+esc(tallyLabel)+'</div>':'')+'</header>';
 }
 
-/* ---------- BANK ---------- */
-function artistList(){
-  var s={}; clips.forEach(function(c){s[c.artist_name]=1;}); return Object.keys(s).sort();
-}
-function bankView(){
-  var list = clips.filter(function(c){
-    if(fArtist && c.artist_name!==fArtist) return false;
-    if(fSource && c.source!==fSource) return false;
-    if(fBand && c.duration_band!==fBand) return false;
-    if(fUnused && (+c.used_count)>0) return false;
-    return true;
+/* ---------- HOME: artists by release date ---------- */
+function homeView(){
+  var as=artists();
+  var h=mast("DIFF Radio · social","Posting",as.length,as.length===1?"artist":"artists")+
+    '<div class="bar"><span class="mono" style="font-size:11px;color:var(--ink3)">Most recent release first</span>'+
+    '<span class="sp"></span><a class="btn" href="#/numbers">Numbers</a></div><div class="alist">';
+  var today=todayIso(), upcoming=null;
+  as.forEach(function(a){ var r=rel(a);
+    var d=r.perf_date||r.interview_date;
+    if(d&&d>=today&&(!upcoming||d<upcoming.d)) upcoming={a:a,d:d}; });
+
+  as.forEach(function(a){
+    var r=rel(a), cs=clipsOf(a), ps=postsOf(a);
+    var q=ps.filter(function(p){return p.status==="queued";}).length;
+    var unused=cs.filter(function(c){return (+c.used_count)===0;}).length;
+    var next=upcoming&&upcoming.a===a;
+    var dates=[];
+    if(r.perf_date)      dates.push((r.perf_label||"Performance")+" · "+fmtDay(r.perf_date));
+    if(r.interview_date) dates.push("Interview · "+fmtDay(r.interview_date));
+    h+='<a class="acard" href="#/artist/'+encodeURIComponent(a)+'">'+
+      '<div class="an"><b>'+esc(a)+'</b>'+
+        (r.episode_no?'<em>Ep. '+r.episode_no+'</em>':'')+
+        (next?'<em class="next">Next out</em>':'')+'</div>'+
+      '<div class="ad">'+(dates.length?esc(dates.join("   ·   ")):"No release dates set")+'</div>'+
+      '<div class="as">'+
+        '<div><b>'+cs.length+'</b>clips</div>'+
+        '<div><b>'+unused+'</b>never posted</div>'+
+        '<div><b>'+ps.length+'</b>slots</div>'+
+        '<div><b>'+q+'</b>queued</div>'+
+      '</div></a>';
   });
-  var h = '<div class="bar">'+
-    '<select id="fArtist"><option value="">All artists</option>'+
-      artistList().map(function(a){return '<option'+(fArtist===a?' selected':'')+'>'+esc(a)+'</option>';}).join("")+'</select>'+
+  return h+'</div>';
+}
+
+/* ---------- ARTIST ---------- */
+function artistView(){
+  var a=vArtist, r=rel(a), ps=postsOf(a), cs=clipsOf(a);
+  var q=ps.filter(function(p){return p.status==="queued";}).length;
+  var sub=[];
+  if(r.episode_no) sub.push("Ep. "+r.episode_no);
+  if(r.perf_date) sub.push((r.perf_label||"Performance")+" "+fmtDay(r.perf_date));
+  if(r.interview_date) sub.push("Interview "+fmtDay(r.interview_date));
+
+  var h='<a class="back" href="#/">‹ All artists</a>'+
+    mast(sub.length?sub.join("  ·  "):"DIFF Radio · social", a,
+         vTab==="board" ? q+" / "+ps.length : cs.length,
+         vTab==="board" ? "queued" : "clips")+
+    '<div class="tabs">'+
+      '<button onclick="go(\'board\')" class="'+(vTab==="board"?"on":"")+'">Board</button>'+
+      '<button onclick="go(\'clips\')" class="'+(vTab==="clips"?"on":"")+'">Clips</button>'+
+    '</div>';
+  return h + (vTab==="board" ? boardView(a) : clipsView(a));
+}
+function go(t){ location.hash="#/artist/"+encodeURIComponent(vArtist)+"/"+t; }
+
+function boardView(a){
+  var r=rel(a), ps=postsOf(a);
+  var days={}; ps.forEach(function(p){ var d=dayIsoOf(p.scheduled_for)||"unscheduled";
+    (days[d]=days[d]||[]).push(p); });
+  var keys=Object.keys(days).sort();
+
+  var h='';
+  if(!keys.length){
+    h+='<div class="setup"><p>Nothing on the board for '+esc(a)+' yet. '+
+       'A standard day is YouTube 09:00, Instagram 12:00, YouTube 17:00, TikTok 18:00 and TikTok 20:00 — '+
+       'change any time on the card.</p><div class="bar" style="margin:0">';
+    if(r.perf_date)      h+='<button class="btn on mkday" data-d="'+r.perf_date+'">Set up '+esc(fmtDay(r.perf_date))+'</button>';
+    if(r.interview_date) h+='<button class="btn on mkday" data-d="'+r.interview_date+'">Set up '+esc(fmtDay(r.interview_date))+'</button>';
+    h+='</div></div>';
+  }
+
+  keys.forEach(function(d){
+    var day=days[d].sort(function(x,y){return (x.scheduled_for||"").localeCompare(y.scheduled_for||"");});
+    var dq=day.filter(function(p){return p.status==="queued";}).length;
+    h+='<div class="day"><div class="dayhd"><b>'+esc(d==="unscheduled"?"No date":fmtDay(d))+'</b>'+
+       '<em>'+dq+' of '+day.length+' queued</em><span class="sp"></span>'+
+       '<button class="btn addOne" data-d="'+esc(d)+'">+ Slot</button>'+
+       '<button class="btn addDay" data-d="'+esc(d)+'">+ Standard day</button></div>';
+    day.forEach(function(p){ h+=slotCard(p); });
+    h+='</div>';
+  });
+
+  h+='<div class="setup"><p>Add another day to this campaign.</p>'+
+     '<div class="bar" style="margin:0"><input type="date" id="newDay" value="'+
+     esc(r.interview_date||r.perf_date||todayIso())+'">'+
+     '<button class="btn" id="newSlot">+ One slot</button>'+
+     '<button class="btn on" id="newStd">+ Standard day</button></div></div>';
+  return h;
+}
+function clipOptions(a,sel){
+  var byS={};
+  clipsOf(a).filter(function(c){return !c.retired||c.id===sel;})
+            .forEach(function(c){ (byS[c.source]=byS[c.source]||[]).push(c); });
+  var o='<option value="">— no clip chosen —</option>';
+  Object.keys(byS).sort().forEach(function(s){
+    o+='<optgroup label="'+esc(SRC[s]||s)+'">';
+    byS[s].forEach(function(c){
+      var d=c.duration_seconds?" · "+c.duration_seconds+"s":" · ?s";
+      var u=(+c.used_count)>0?" · used":"";
+      o+='<option value="'+c.id+'"'+(sel===c.id?" selected":"")+'>'+esc(c.display_name+d+u)+'</option>';
+    });
+    o+='</optgroup>';
+  });
+  return o;
+}
+function slotCard(p){
+  var b=band(p.duration_seconds);
+  var url=p.clip_url||(p.clip_path?"https://www.dropbox.com/preview"+encodeURI(p.clip_path):null);
+  var tl=(p.title||"").length;
+  var cls=p.status==="queued"?" q":(p.status==="held"?" held":(p.status==="skipped"?" skipped":""));
+  return '<div class="slot'+cls+'" data-p="'+p.id+'">'+
+    '<div class="sl1">'+
+      '<input class="t mono" type="time" value="'+esc(hhmm(p.scheduled_for))+'" style="width:104px">'+
+      '<select class="pl" style="width:120px">'+
+        Object.keys(PLAT).map(function(k){return '<option value="'+k+'"'+(p.platform===k?" selected":"")+'>'+PLAT[k]+'</option>';}).join("")+
+      '</select>'+
+      (b?'<span class="band '+b.k+'">'+b.t+'</span>':'<span class="band">no length</span>')+
+      '<span class="sp" style="margin-left:auto"></span>'+
+      (url?'<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Clip</a>':'')+
+      '<button class="btn st'+(p.status==="queued"?" on":"")+'">'+(p.status==="queued"?"Queued":"Mark queued")+'</button>'+
+      '<select class="stx" style="width:98px">'+
+        ["planned","queued","held","skipped","failed"].map(function(s){
+          return '<option value="'+s+'"'+(p.status===s?" selected":"")+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>';}).join("")+
+      '</select>'+
+    '</div>'+
+    '<div class="fld"><label>Clip</label><select class="cl">'+clipOptions(p.artist_name,p.clip_id)+'</select></div>'+
+    '<div class="fld"><label>Title <i class="'+(tl>60?"over":"")+'">'+tl+'/60</i>'+
+      '<span class="sp"></span><button class="btn cpT">Copy</button></label>'+
+      '<input class="ti" type="text" value="'+esc(p.title||"")+'" placeholder="the title as it goes in"></div>'+
+    '<div class="fld"><label>Caption / description<span class="sp"></span>'+
+      '<button class="btn cpC">Copy</button></label>'+
+      '<textarea class="ca" placeholder="caption, hashtags, the lot">'+esc(p.caption||"")+'</textarea></div>'+
+  '</div>';
+}
+function saveSlot(el,reload){
+  var cur=posts.filter(function(p){return p.id===el.dataset.p;})[0];
+  var day=dayIsoOf(cur.scheduled_for)||todayIso();
+  var sel=el.querySelector(".cl").value;
+  var d={ clip_id:sel||null,
+    scheduled_for:tsLocal(day, el.querySelector(".t").value||"12:00"),
+    platform:el.querySelector(".pl").value,
+    title:el.querySelector(".ti").value,
+    caption:el.querySelector(".ca").value,
+    status:el.querySelector(".stx").value };
+  if(!sel){ d.artist_name=cur.artist_name; d.source=cur.source; }
+  return rpc("posting_save_post",{p_code:code,p_id:el.dataset.p,p_data:d})
+    .then(function(){ toast("saved"); if(reload) return refresh().then(render); })
+    .catch(function(){ toast("save failed"); });
+}
+function addSlots(dayIso,specs){
+  var a=vArtist, r=rel(a), cs=clipsOf(a);
+  var src = (dayIso===r.interview_date) ? "interview"
+          : (dayIso===r.perf_date ? (cs.filter(function(c){return c.source!=="interview";})[0]||{}).source || "performance"
+          : (cs[0]?cs[0].source:"interview"));
+  var jobs=specs.map(function(s){
+    return rpc("posting_save_post",{p_code:code,p_id:null,p_data:{
+      scheduled_for:tsLocal(dayIso,s[0]), platform:s[1],
+      artist_name:a, source:src, status:"planned"}});
+  });
+  Promise.all(jobs).then(refresh).then(render).catch(function(){ toast("couldn’t add"); });
+}
+function wireBoard(){
+  document.querySelectorAll(".mkday").forEach(function(b){
+    b.onclick=function(){ addSlots(b.dataset.d, STD); };
+  });
+  document.querySelectorAll(".addOne").forEach(function(b){
+    b.onclick=function(){ addSlots(b.dataset.d,[["12:00","instagram"]]); };
+  });
+  document.querySelectorAll(".addDay").forEach(function(b){
+    b.onclick=function(){ addSlots(b.dataset.d, STD); };
+  });
+  var nd=document.getElementById("newDay");
+  var ns=document.getElementById("newSlot"), nx=document.getElementById("newStd");
+  if(ns) ns.onclick=function(){ if(nd.value) addSlots(nd.value,[["12:00","instagram"]]); };
+  if(nx) nx.onclick=function(){ if(nd.value) addSlots(nd.value, STD); };
+
+  document.querySelectorAll(".slot").forEach(function(el){
+    el.querySelector(".cl").onchange=function(){ saveSlot(el,true); };
+    el.querySelector(".pl").onchange=function(){ saveSlot(el,true); };
+    el.querySelector(".t").onchange =function(){ saveSlot(el,true); };
+    el.querySelector(".ti").onblur  =function(){ saveSlot(el,false); };
+    el.querySelector(".ca").onblur  =function(){ saveSlot(el,false); };
+    el.querySelector(".ti").oninput =function(){
+      var i=el.querySelector(".fld i"); if(!i) return;
+      var n=el.querySelector(".ti").value.length;
+      i.textContent=n+"/60"; i.className=n>60?"over":"";
+    };
+    el.querySelector(".cpT").onclick=function(e){ e.preventDefault(); copy(el.querySelector(".ti").value,"Title"); };
+    el.querySelector(".cpC").onclick=function(e){ e.preventDefault(); copy(el.querySelector(".ca").value,"Caption"); };
+    el.querySelector(".stx").onchange=function(){ setStatus(el,el.querySelector(".stx").value); };
+    el.querySelector(".st").onclick =function(){
+      var cur=posts.filter(function(x){return x.id===el.dataset.p;})[0];
+      setStatus(el, cur.status==="queued"?"planned":"queued");
+    };
+  });
+}
+function setStatus(el,st){
+  rpc("posting_set_post_status",{p_code:code,p_id:el.dataset.p,p_status:st})
+    .then(refresh).then(render).catch(function(){ toast("save failed"); });
+}
+
+/* ---------- ARTIST: clips ---------- */
+function clipsView(a){
+  var list=clipsOf(a).filter(function(c){
+    if(fSource&&c.source!==fSource) return false;
+    if(fBand&&c.duration_band!==fBand) return false;
+    if(fUnused&&(+c.used_count)>0) return false;
+    return true; });
+  var srcs={}; clipsOf(a).forEach(function(c){srcs[c.source]=1;});
+  var h='<div class="bar">'+
     '<select id="fSource"><option value="">All sources</option>'+
-      Object.keys(SRC).map(function(k){return '<option value="'+k+'"'+(fSource===k?' selected':'')+'>'+SRC[k]+'</option>';}).join("")+'</select>'+
+      Object.keys(srcs).map(function(k){return '<option value="'+k+'"'+(fSource===k?" selected":"")+'>'+(SRC[k]||k)+'</option>';}).join("")+'</select>'+
     '<select id="fBand"><option value="">Any length</option>'+
       [["under_15","Under 15s"],["15_to_25","15–25s"],["over_25","Over 25s"]].map(function(p){
-        return '<option value="'+p[0]+'"'+(fBand===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join("")+'</select>'+
-    '<button class="btn'+(fUnused?' on':'')+'" id="fUnused">Never posted</button>'+
-    '<span class="sp mono" style="font-size:11px;color:var(--ink3)">'+list.length+' of '+clips.length+'</span></div>';
-
+        return '<option value="'+p[0]+'"'+(fBand===p[0]?" selected":"")+'>'+p[1]+'</option>';}).join("")+'</select>'+
+    '<button class="btn'+(fUnused?" on":"")+'" id="fUnused">Never posted</button>'+
+    '<span class="sp mono" style="font-size:11px;color:var(--ink3)">'+list.length+' of '+clipsOf(a).length+'</span></div>';
   if(!list.length) return h+'<p class="empty">Nothing matches those filters.</p>';
-
-  var byArtist={};
-  list.forEach(function(c){ (byArtist[c.artist_name]=byArtist[c.artist_name]||[]).push(c); });
-  Object.keys(byArtist).sort().forEach(function(a){
-    h += '<h2>'+esc(a)+'</h2>';
-    var bySrc={}; byArtist[a].forEach(function(c){ (bySrc[c.source]=bySrc[c.source]||[]).push(c); });
-    Object.keys(bySrc).sort().forEach(function(s){
-      h += '<h3>'+esc(SRC[s]||s)+'</h3>';
-      bySrc[s].forEach(function(c,i){
-        var b = band(c.duration_seconds), u=+c.used_count||0, url=clipUrl(c);
-        h += '<div class="row'+(c.retired?' off':'')+'">'+
-          '<div class="n">'+(i+1)+'</div>'+
-          '<div class="nm"><b>'+esc(c.display_name)+'</b><span>'+esc(c.file_name)+
-            (u? ' · posted '+u+'×':'')+'</span></div>'+
-          '<div class="dur"><input class="d" data-id="'+c.id+'" type="number" min="1" max="600" '+
-            'value="'+(c.duration_seconds||"")+'" inputmode="numeric"><em>s</em></div>'+
-          '<div class="act">'+(b?'<span class="band '+b.k+'">'+b.t+'</span>':'<span class="band">—</span>')+
-            (url?'<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Clip</a>':'')+
-            '<button class="btn r'+(c.retired?'':' on')+'" data-id="'+c.id+'" data-r="'+(c.retired?'0':'1')+'">'+
-              (c.retired?'Retired':'Use')+'</button></div></div>';
-      });
+  var byS={}; list.forEach(function(c){ (byS[c.source]=byS[c.source]||[]).push(c); });
+  Object.keys(byS).sort().forEach(function(s){
+    h+='<h3>'+esc(SRC[s]||s)+'</h3>';
+    byS[s].forEach(function(c,i){
+      var b=band(c.duration_seconds), u=+c.used_count||0, url=clipUrl(c);
+      h+='<div class="row'+(c.retired?" off":"")+'">'+
+        '<div class="n">'+(i+1)+'</div>'+
+        '<div class="nm"><b>'+esc(c.display_name)+'</b><span>'+esc(c.file_name)+(u?" · posted "+u+"×":"")+'</span></div>'+
+        '<div class="dur"><input class="d" data-id="'+c.id+'" type="number" min="1" max="600" value="'+(c.duration_seconds||"")+'" inputmode="numeric"><em class="mono" style="font-size:11px;color:var(--ink3);font-style:normal">s</em></div>'+
+        '<div class="act">'+(b?'<span class="band '+b.k+'">'+b.t+'</span>':'<span class="band">—</span>')+
+          (url?'<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Clip</a>':'')+
+          '<button class="btn r'+(c.retired?"":" on")+'" data-id="'+c.id+'" data-r="'+(c.retired?"0":"1")+'">'+
+            (c.retired?"Retired":"Use")+'</button></div></div>';
     });
   });
   return h;
 }
-function wireBank(){
-  var a=document.getElementById("fArtist"), s=document.getElementById("fSource"),
-      b=document.getElementById("fBand"), u=document.getElementById("fUnused");
-  if(a) a.onchange=function(){ fArtist=a.value; render(); };
+function wireClips(){
+  var s=document.getElementById("fSource"), b=document.getElementById("fBand"), u=document.getElementById("fUnused");
   if(s) s.onchange=function(){ fSource=s.value; render(); };
   if(b) b.onchange=function(){ fBand=b.value; render(); };
   if(u) u.onclick=function(){ fUnused=!fUnused; render(); };
   document.querySelectorAll("input.d").forEach(function(el){
     el.onchange=function(){
-      var v = el.value.trim()==="" ? null : parseInt(el.value,10);
+      var v=el.value.trim()===""?null:parseInt(el.value,10);
       rpc("posting_set_duration",{p_code:code,p_clip:el.dataset.id,p_seconds:v}).then(function(){
-        var c = clips.filter(function(x){return x.id===el.dataset.id;})[0];
+        var c=clips.filter(function(x){return x.id===el.dataset.id;})[0];
         if(c){ c.duration_seconds=v;
-          c.duration_band = v==null?null:(v<15?"under_15":(v<=25?"15_to_25":"over_25")); }
+          c.duration_band=v==null?null:(v<15?"under_15":(v<=25?"15_to_25":"over_25")); }
         render();
       }).catch(function(){ toast("save failed"); });
     };
   });
   document.querySelectorAll("button.r").forEach(function(el){
     el.onclick=function(){
-      var want = el.dataset.r==="1";
+      var want=el.dataset.r==="1";
       rpc("posting_set_retired",{p_code:code,p_clip:el.dataset.id,p_retired:want}).then(function(){
-        var c = clips.filter(function(x){return x.id===el.dataset.id;})[0];
+        var c=clips.filter(function(x){return x.id===el.dataset.id;})[0];
         if(c) c.retired=want; render();
       }).catch(function(){ toast("save failed"); });
     };
   });
 }
 
-/* ---------- SCHEDULE ---------- */
-function weekStart(){ return addDays(mondayOf(new Date()), weekOff*7); }
-function weekPosts(){
-  var a=iso(weekStart()), b=iso(addDays(weekStart(),6));
-  return posts.filter(function(p){ var d=dayIsoOf(p.scheduled_for); return d && d>=a && d<=b; });
-}
-function scheduleView(){
-  var ws = weekStart(), we = addDays(ws,6);
-  var h = '<div class="bar">'+
-    '<button class="btn" id="wPrev">‹ Prev</button>'+
-    '<button class="btn" id="wThis">This week</button>'+
-    '<button class="btn" id="wNext">Next ›</button>'+
-    '<span class="mono" style="font-size:12px;color:var(--ink2);margin-left:6px">'+
-      label(ws)+' — '+label(we)+'</span></div>';
-
-  var wk = weekPosts();
-  for(var i=0;i<7;i++){
-    var d = addDays(ws,i), di = iso(d);
-    var day = wk.filter(function(p){ return dayIsoOf(p.scheduled_for)===di; })
-                .sort(function(x,y){ return (x.scheduled_for||"").localeCompare(y.scheduled_for||""); });
-    h += '<div class="day"><div class="dayhd"><b>'+label(d)+'</b>'+
-         '<em>'+(day.length? day.length+(day.length===1?' post':' posts') : 'empty')+'</em>'+
-         '<span class="sp"></span>'+
-         '<button class="btn addOne" data-d="'+di+'">+ Slot</button>'+
-         '<button class="btn addDay" data-d="'+di+'">+ Standard day</button></div>';
-    if(!day.length) h += '<p class="empty">Nothing scheduled.</p>';
-    day.forEach(function(p){ h += slotCard(p); });
-    h += '</div>';
-  }
-  return h;
-}
-function clipOptions(sel){
-  var byA={};
-  clips.filter(function(c){ return !c.retired || c.id===sel; })
-       .forEach(function(c){ (byA[c.artist_name]=byA[c.artist_name]||[]).push(c); });
-  var o = '<option value="">— no clip chosen —</option>';
-  Object.keys(byA).sort().forEach(function(a){
-    o += '<optgroup label="'+esc(a)+'">';
-    byA[a].forEach(function(c){
-      var d = c.duration_seconds? " · "+c.duration_seconds+"s" : " · ?s";
-      var u = (+c.used_count)>0 ? " · used" : "";
-      o += '<option value="'+c.id+'"'+(sel===c.id?' selected':'')+'>'+
-           esc((SRC[c.source]||c.source)+": "+c.display_name+d+u)+'</option>';
-    });
-    o += '</optgroup>';
-  });
-  return o;
-}
-function slotCard(p){
-  var b = band(p.duration_seconds);
-  var url = p.clip_url || (p.clip_path ? "https://www.dropbox.com/preview"+encodeURI(p.clip_path) : null);
-  var tl = (p.title||"").length;
-  var cls = p.status==="queued"?" q":(p.status==="held"?" held":(p.status==="skipped"?" skipped":""));
-  return '<div class="slot'+cls+'" data-p="'+p.id+'">'+
-    '<div class="sl1">'+
-      '<input class="t mono" type="time" value="'+esc(hhmm(p.scheduled_for))+'" style="width:104px">'+
-      '<select class="pl" style="width:122px">'+
-        Object.keys(PLAT).map(function(k){return '<option value="'+k+'"'+(p.platform===k?' selected':'')+'>'+PLAT[k]+'</option>';}).join("")+
-      '</select>'+
-      (b?'<span class="band '+b.k+'">'+b.t+'</span>':'<span class="band">no length</span>')+
-      '<span class="sp"></span>'+
-      (url?'<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Clip</a>':'')+
-      '<button class="btn st'+(p.status==="queued"?" on":"")+'">'+(p.status==="queued"?"Queued":"Mark queued")+'</button>'+
-      '<select class="stx" style="width:100px"><option value="planned"'+(p.status==="planned"?" selected":"")+'>Planned</option>'+
-        '<option value="held"'+(p.status==="held"?" selected":"")+'>Held</option>'+
-        '<option value="skipped"'+(p.status==="skipped"?" selected":"")+'>Skipped</option>'+
-        '<option value="failed"'+(p.status==="failed"?" selected":"")+'>Failed</option>'+
-        '<option value="queued"'+(p.status==="queued"?" selected":"")+'>Queued</option></select>'+
-    '</div>'+
-    '<div class="fld"><label>Clip</label><select class="cl">'+clipOptions(p.clip_id)+'</select></div>'+
-    '<div class="fld"><label>Title <i class="'+(tl>60?"over":"")+'">'+tl+'/60</i>'+
-      '<button class="btn cpT" style="margin-left:8px">Copy</button></label>'+
-      '<input class="ti" type="text" value="'+esc(p.title||"")+'" placeholder="the title as it goes in"></div>'+
-    '<div class="fld"><label>Caption / description'+
-      '<button class="btn cpC" style="margin-left:auto">Copy</button></label>'+
-      '<textarea class="ca" placeholder="caption, hashtags, the lot">'+esc(p.caption||"")+'</textarea></div>'+
-  '</div>';
-}
-function collect(el){
-  var sel = el.querySelector(".cl").value;
-  var day = dayIsoOf(posts.filter(function(p){return p.id===el.dataset.p;})[0].scheduled_for)
-            || iso(weekStart());
-  return {
-    clip_id: sel || null,
-    scheduled_for: tsLocal(day, el.querySelector(".t").value || "12:00"),
-    platform: el.querySelector(".pl").value,
-    title: el.querySelector(".ti").value,
-    caption: el.querySelector(".ca").value,
-    status: el.querySelector(".stx").value,
-    artist_name: null, source: null
-  };
-}
-function saveSlot(el, reload){
-  var d = collect(el);
-  var cur = posts.filter(function(p){return p.id===el.dataset.p;})[0];
-  if(!d.clip_id){ d.artist_name = cur.artist_name; d.source = cur.source; }
-  return rpc("posting_save_post",{p_code:code,p_id:el.dataset.p,p_data:d})
-    .then(function(){ toast("saved"); if(reload) return refreshPosts().then(render); })
-    .catch(function(){ toast("save failed"); });
-}
-function wireSchedule(){
-  var p=document.getElementById("wPrev"), t=document.getElementById("wThis"), n=document.getElementById("wNext");
-  if(p) p.onclick=function(){ weekOff--; render(); };
-  if(t) t.onclick=function(){ weekOff=0; render(); };
-  if(n) n.onclick=function(){ weekOff++; render(); };
-
-  document.querySelectorAll(".addOne").forEach(function(b){
-    b.onclick=function(){ addSlots(b.dataset.d, [["12:00","instagram"]]); };
-  });
-  document.querySelectorAll(".addDay").forEach(function(b){
-    b.onclick=function(){ addSlots(b.dataset.d, [
-      ["09:00","youtube"],["12:00","instagram"],["17:00","youtube"],["18:00","tiktok"],["20:00","tiktok"]
-    ]); };
-  });
-
-  document.querySelectorAll(".slot").forEach(function(el){
-    el.querySelector(".cl").onchange = function(){ saveSlot(el,true); };
-    el.querySelector(".pl").onchange = function(){ saveSlot(el,true); };
-    el.querySelector(".t").onchange  = function(){ saveSlot(el,true); };
-    el.querySelector(".ti").onblur   = function(){ saveSlot(el,false); };
-    el.querySelector(".ca").onblur   = function(){ saveSlot(el,false); };
-    el.querySelector(".ti").oninput  = function(){
-      var i = el.querySelector(".fld i"); if(!i) return;
-      var n = el.querySelector(".ti").value.length;
-      i.textContent = n+"/60"; i.className = n>60 ? "over" : "";
-    };
-    el.querySelector(".cpT").onclick = function(e){ e.preventDefault(); copy(el.querySelector(".ti").value,"Title"); };
-    el.querySelector(".cpC").onclick = function(e){ e.preventDefault(); copy(el.querySelector(".ca").value,"Caption"); };
-    el.querySelector(".stx").onchange= function(){ setStatus(el, el.querySelector(".stx").value); };
-    el.querySelector(".st").onclick  = function(){
-      var cur = posts.filter(function(x){return x.id===el.dataset.p;})[0];
-      setStatus(el, cur.status==="queued" ? "planned" : "queued");
-    };
-  });
-}
-function setStatus(el, st){
-  rpc("posting_set_post_status",{p_code:code,p_id:el.dataset.p,p_status:st})
-    .then(function(){ return refreshPosts(); }).then(render)
-    .catch(function(){ toast("save failed"); });
-}
-function addSlots(dayIso, specs){
-  var a = fArtist || artistList()[0];
-  var c = clips.filter(function(x){return x.artist_name===a;})[0];
-  var jobs = specs.map(function(s){
-    return rpc("posting_save_post",{p_code:code,p_id:null,p_data:{
-      scheduled_for: tsLocal(dayIso, s[0]), platform: s[1],
-      artist_name: a, source: (c? c.source : "interview"), status:"planned"
-    }});
-  });
-  Promise.all(jobs).then(refreshPosts).then(render)
-    .catch(function(){ toast("couldn’t add"); });
-}
-
 /* ---------- NUMBERS ---------- */
 function numbersView(){
-  var used = clips.filter(function(c){return (+c.used_count)>0;}).length;
-  var inBand = clips.filter(function(c){return c.duration_band==="15_to_25";}).length;
-  var noDur = clips.filter(function(c){return !c.duration_seconds;}).length;
-  var q = posts.filter(function(p){return p.status==="queued";}).length;
-
-  var h = '<h2>Where this stands</h2><div class="cards">'+
-    card(posts.length,"posts on the board")+
-    card(q,"ticked queued")+
-    card(clips.length-used,"clips never posted")+
-    card(inBand+" / "+clips.length,"clips 15–25s")+
-    card(noDur,"clips with no length")+
-    '</div>';
-
+  var used=clips.filter(function(c){return (+c.used_count)>0;}).length;
+  var inBand=clips.filter(function(c){return c.duration_band==="15_to_25";}).length;
+  var noDur=clips.filter(function(c){return !c.duration_seconds;}).length;
+  var q=posts.filter(function(p){return p.status==="queued";}).length;
+  var h='<a class="back" href="#/">‹ All artists</a>'+
+    mast("DIFF Radio · social","Numbers",posts.length,"slots on the board")+
+    '<h2>Where this stands</h2><div class="cards">'+
+    card(q,"ticked queued")+card(clips.length-used,"clips never posted")+
+    card(inBand+" / "+clips.length,"clips 15–25s")+card(noDur,"clips with no length")+'</div>';
   if(posts.length){
-    var byP={}, byB={};
+    var byP={},byB={};
     posts.forEach(function(p){ byP[p.platform]=(byP[p.platform]||0)+1;
       var k=p.duration_band||"unknown"; byB[k]=(byB[k]||0)+1; });
-    h += '<h3>By platform</h3><div class="cards">'+
-      Object.keys(byP).map(function(k){return card(byP[k], PLAT[k]||k);}).join("")+'</div>';
-    h += '<h3>By length band</h3><div class="cards">'+
-      Object.keys(byB).map(function(k){return card(byB[k],
-        k==="15_to_25"?"15–25s":(k==="under_15"?"under 15s":(k==="over_25"?"over 25s":"no length")));}).join("")+'</div>';
+    h+='<h3>By platform</h3><div class="cards">'+Object.keys(byP).map(function(k){return card(byP[k],PLAT[k]||k);}).join("")+'</div>';
+    h+='<h3>By length band</h3><div class="cards">'+Object.keys(byB).map(function(k){
+      return card(byB[k], k==="15_to_25"?"15–25s":(k==="under_15"?"under 15s":(k==="over_25"?"over 25s":"no length")));}).join("")+'</div>';
   }
-
-  h += '<h2>What the numbers already say</h2>'+
-    '<p class="muted">From CUNNING MC, Harvs Le Toad, BBY GOOSE and DAYSH — counted by hand before this app existed. '+
-    'Treat them as leads, not verdicts: the samples are small and the artists differ.</p>'+
-    find("Length is the strongest signal so far",
-      "Three clips around 20 seconds averaged 895 views. Three around 50 seconds averaged 249. Two different artists, same direction. People leave at roughly 12–14 seconds whatever the clip’s length, so a 50-second clip just reports a worse percentage.")+
-    find("Second person beats third person",
-      "“The text you keep not sending” outperformed the “he did X” shape by a wide margin — 728 views against 83 on comparable clips.")+
-    find("An open loop beats a closed statement",
-      "The best-performing title on the channel is the only one that is not a complete sentence. A title that answers itself gives nobody a reason to watch.")+
-    find("Borrowed names travel",
-      "A title naming three well-known artists did 1,389 views and was never repeated. Worth testing properly — Frey’s batch has one sitting in it.")+
-    find("Sunday and Wednesday, 09:00–10:00",
-      "The drop slots. Instagram Reels at 12:00; TikTok being tested at 18:00 and 20:00.")+
+  h+='<h2>What the numbers already say</h2>'+
+    '<p class="muted">Counted by hand from earlier episodes, before this app existed. Leads, not verdicts — small samples, different artists.</p>'+
+    find("Length is the strongest signal so far","Three clips around 20 seconds averaged 895 views. Three around 50 seconds averaged 249. Two different artists, same direction. People leave at roughly 12–14 seconds whatever the clip’s length, so a 50-second clip just reports a worse percentage.")+
+    find("Second person beats third person","“The text you keep not sending” outperformed the “he did X” shape by a wide margin — 728 views against 83 on comparable clips.")+
+    find("An open loop beats a closed statement","The best-performing title on the channel is the only one that is not a complete sentence. A title that answers itself gives nobody a reason to watch.")+
+    find("Borrowed names travel","A title naming three well-known artists did 1,389 views and was never repeated. Worth testing properly — Frey’s batch has one sitting in it.")+
+    find("Sunday and Wednesday, 09:00–10:00","The drop slots. Instagram Reels at 12:00; TikTok being tested at 18:00 and 20:00.")+
     '<h2>Not here yet</h2>'+
-    find("Views, retention and the rest",
-      "Nothing above is read automatically. YouTube Analytics is the first API to wire in — it has the richest data and the clearest path. TikTok and Instagram both need app approval. Spotify has no creator analytics API at all and stays a manual export, permanently.")+
-    find("Anything crossing gender × length × topic × format",
-      "Months away. Starting clean from Frey means starting at zero, which was the deliberate trade for not inventing history.");
+    find("Views, retention and the rest","None of it is read automatically. YouTube Analytics is the first API to wire in — richest data, clearest path. TikTok and Instagram both need app approval, which takes weeks and isn’t guaranteed. Spotify has no creator analytics API at all and stays a manual export, permanently.")+
+    find("Anything crossing gender × length × topic × format","Months away. Starting clean from Frey means starting at zero — the deliberate trade for not inventing history.");
   return h;
 }
 function card(n,l){ return '<div class="card"><b>'+esc(n)+'</b><span>'+esc(l)+'</span></div>'; }
 function find(t,p){ return '<div class="find"><b>'+esc(t)+'</b><p>'+esc(p)+'</p></div>'; }
 
 /* ---------- boot ---------- */
-tab = localStorage.getItem(LSTAB) || "schedule";
-if(["bank","schedule","numbers"].indexOf(tab)<0) tab="schedule";
-code = localStorage.getItem(LS);
+code=localStorage.getItem(LS);
 if(code) load(false); else gate("");
 </script>
 </body>
