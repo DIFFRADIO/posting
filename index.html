@@ -168,6 +168,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
+var BUILD = "2026-10-22c";
 
 var code=null, clips=[], posts=[], releases=[];
 var view="home", vArtist=null, vTab="board";
@@ -268,10 +269,7 @@ function artists(){
   releases.forEach(function(r){s[r.artist_name]=1;});
   posts.forEach(function(p){s[p.artist_name]=1;});
   return Object.keys(s).sort(function(a,b){
-    var ra=rel(a), rb=rel(b);
-    var ka=ra.interview_date||ra.perf_date||"0000", kb=rb.interview_date||rb.perf_date||"0000";
-    if(ka!==kb) return kb<ka?-1:1;
-    return a<b?-1:1;
+    return a.toLowerCase().localeCompare(b.toLowerCase());
   });
 }
 function clipsOf(a){ return clips.filter(function(c){return c.artist_name===a;}); }
@@ -285,7 +283,8 @@ function render(){
   if(view==="numbers") h+=numbersView();
   h+='<div class="foot"><p>Ticking a slot <b>queued</b> is the record — there is no second step. '+
      'Queued means it is sitting in the scheduler, not that it has gone out.</p>'+
-     '<p><button id="forget">Forget this device</button></p></div></div>';
+     '<p><button id="forget">Forget this device</button>'+
+     '<span class="mono" style="float:right;font-size:10px;color:var(--ink3)">build '+BUILD+'</span></p></div></div>';
   app.innerHTML=h;
   document.getElementById("forget").onclick=function(){ localStorage.removeItem(LS); location.reload(); };
   if(view==="home") wireTree();
@@ -318,7 +317,8 @@ function homeView(){
     '<div class="srch"><input id="q" type="search" autocomplete="off" spellcheck="false" '+
       'placeholder="Search artists, clips, titles…" value="'+esc(q)+'"></div>'+
     '<div class="tctl">'+
-      '<button class="btn" id="expAll">Expand all</button>'+
+      '<span class="mono" style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)">A\u2013Z</span>'+
+    '<button class="btn" id="expAll">Expand all</button>'+
       '<button class="btn" id="colAll">Collapse all</button>'+
       '<span class="sp"></span><a class="btn" href="#/numbers">Numbers</a></div>'+
     '<div id="tree">'+treeHtml()+'</div>';
