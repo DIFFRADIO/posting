@@ -88,6 +88,9 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .fld label .sp{margin-left:auto}
 .fld input[type=text],.fld textarea,.fld select{width:100%}
 .fld textarea{min-height:66px;resize:vertical;line-height:1.4}
+.why{margin:2px 0 10px;padding:10px 12px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent);border-radius:var(--radius);font-size:13px;line-height:1.45}
+.why b{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.why.note{border-color:var(--line);background:var(--surface2);color:var(--ink2)}
 .empty{color:var(--ink2);font-size:13.5px;padding:13px 2px;border-bottom:1px solid var(--line)}
 .setup{border:1px dashed var(--line);border-radius:var(--radius);padding:14px;margin:16px 0 0}
 .setup p{margin:0 0 10px;color:var(--ink2);font-size:13.5px}
@@ -564,6 +567,8 @@ function slotCard(p){
           return '<option value="'+s+'"'+(p.status===s?" selected":"")+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>';}).join("")+
       '</select>'+
     '</div>'+
+    (p.hold_reason?'<div class="why"><b>On hold</b>'+esc(p.hold_reason)+'</div>':'')+
+    (p.notes?'<div class="why note"><b>Note</b>'+esc(p.notes)+'</div>':'')+
     '<div class="fld"><label>Clip</label><select class="cl">'+clipOptions(p.artist_name,p.clip_id)+'</select></div>'+
     '<div class="fld"><label>Title <i class="'+(tl>60?"over":"")+'">'+tl+'/60</i>'+
       '<span class="sp"></span><button class="btn cpT">Copy</button></label>'+
