@@ -134,6 +134,31 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .halfc.create .k{color:var(--accent)}
 .halfc.analytics{border-left:4px solid var(--ink);background:var(--surface2)}
 @media(max-width:700px){.two{grid-template-columns:1fr}.halfc{min-height:0}}
+
+/* grid board */
+.gwrap{overflow-x:auto;margin:14px 0 0;-webkit-overflow-scrolling:touch}
+.grid{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);min-width:420px}
+.grid>*{background:var(--surface)}
+.gh{padding:9px 11px;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink2);background:var(--surface2)}
+.gh.day{font-family:'Sora',sans-serif;font-size:14px;letter-spacing:-.01em;text-transform:none;color:var(--ink)}
+.gl{padding:10px 11px;background:var(--surface2);display:flex;flex-direction:column;justify-content:center;gap:1px}
+.gl b{font-family:'Sora',sans-serif;font-size:12.5px}
+.gl span{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.gc{display:flex;flex-direction:column;gap:6px;text-align:left;border:0;width:100%;font:inherit;color:inherit;padding:10px 11px;min-height:80px;cursor:pointer;background:var(--surface)}
+.gc:hover{background:var(--surface2)}
+.gc.sel{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent)}
+.gc .cn{font-size:13px;line-height:1.3;font-weight:500}
+.gc .cs{margin-top:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.04em;color:var(--ink3)}
+.gc .dot{width:7px;height:7px;border-radius:50%;background:var(--line);flex:none}
+.gc.ok .dot{background:var(--accent)}
+.gc.ok .cn{text-decoration:line-through;text-decoration-color:var(--accent-line);color:var(--ink2)}
+.gc.dead .cn{color:var(--ink3);text-decoration:line-through;text-decoration-color:var(--accent-line)}
+.gc .pl{font-style:normal;border:1px solid var(--line);border-radius:2px;padding:1px 5px}
+.gc .pl.good{color:var(--accent);border-color:var(--accent-line)}
+.gc.none{color:var(--ink3);font-family:'IBM Plex Mono',monospace;font-size:15px;align-items:center;justify-content:center;min-height:80px}
+.gc.none:hover{color:var(--accent)}
+.gsel{margin-top:16px}
+.gsel .slot{margin:0}
 .empty{color:var(--ink2);font-size:13.5px;padding:13px 2px;border-bottom:1px solid var(--line)}
 .setup{border:1px dashed var(--line);border-radius:var(--radius);padding:14px;margin:16px 0 0}
 .setup p{margin:0 0 10px;color:var(--ink2);font-size:13.5px}
@@ -214,11 +239,14 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-22d";
+var BUILD = "2026-10-22e";
 
 var code=null, clips=[], posts=[], releases=[];
 var side=null, view="choose", vArtist=null, vTab="board";
 var fBand="", fSource="", fUnused=false;
+var LSGRID="diff_posting_grid";
+var vGrid = localStorage.getItem(LSGRID)!=="0";
+var selPost = null;
 var LSOPEN="diff_posting_open";
 var openN={}, q="";
 try{ openN=JSON.parse(localStorage.getItem(LSOPEN)||"{}")||{}; }catch(e){ openN={}; }
@@ -584,16 +612,22 @@ function boardView(a){
   var keys=Object.keys(days).sort();
 
   var h='';
-  if(!keys.length){
+  if(keys.length){
+    h+='<div class="bar"><button class="btn'+(vGrid?" on":"")+'" id="vG">Grid</button>'+
+       '<button class="btn'+(vGrid?"":" on")+'" id="vC">Cards</button>'+
+       '<span class="sp mono" style="font-size:10.5px;color:var(--ink3)">'+
+       keys.length+' day'+(keys.length===1?"":"s")+' \u00b7 '+ps.length+' slots</span></div>';
+  } else {
     h+='<div class="setup"><p>Nothing on the board for '+esc(a)+' yet. '+
-       'A standard day is YouTube 09:00, Instagram 12:00, YouTube 17:00, TikTok 18:00 and TikTok 20:00 — '+
+       'A standard day is YouTube 09:00, Instagram 12:00, YouTube 17:00, TikTok 18:00 and TikTok 20:00 \u2014 '+
        'change any time on the card.</p><div class="bar" style="margin:0">';
     if(r.perf_date)      h+='<button class="btn on mkday" data-d="'+r.perf_date+'">Set up '+esc(fmtDay(r.perf_date))+'</button>';
     if(r.interview_date) h+='<button class="btn on mkday" data-d="'+r.interview_date+'">Set up '+esc(fmtDay(r.interview_date))+'</button>';
     h+='</div></div>';
   }
 
-  keys.forEach(function(d){
+  if(keys.length && vGrid) h+=gridView(a,days,keys);
+  else keys.forEach(function(d){
     var day=days[d].sort(function(x,y){return (x.scheduled_for||"").localeCompare(y.scheduled_for||"");});
     var dq=day.filter(function(p){return p.status==="queued";}).length;
     h+='<div class="day"><div class="dayhd"><b>'+esc(d==="unscheduled"?"No date":fmtDay(d))+'</b>'+
@@ -609,6 +643,49 @@ function boardView(a){
      esc(r.interview_date||r.perf_date||todayIso())+'">'+
      '<button class="btn" id="newSlot">+ One slot</button>'+
      '<button class="btn on" id="newStd">+ Standard day</button></div></div>';
+  return h;
+}
+
+/* the grid: days across, platform+time down, one cell per slot */
+function gridView(a,days,keys){
+  var ps=postsOf(a);
+  var rowsMap={};
+  ps.forEach(function(p){
+    var k=hhmm(p.scheduled_for)+"|"+p.platform;
+    rowsMap[k]=[hhmm(p.scheduled_for), p.platform];
+  });
+  var rows=Object.keys(rowsMap).sort().map(function(k){return rowsMap[k];});
+  if(!selPost || !ps.filter(function(p){return p.id===selPost;}).length)
+    selPost = ps.filter(function(p){return p.status!=="skipped";})[0] ?
+              ps.filter(function(p){return p.status!=="skipped";})[0].id : (ps[0]&&ps[0].id);
+
+  var h='<div class="gwrap"><div class="grid" style="grid-template-columns:104px repeat('+keys.length+',minmax(190px,1fr))">'+
+        '<div class="gh corner"></div>';
+  keys.forEach(function(d){ h+='<div class="gh day">'+esc(d==="unscheduled"?"No date":fmtDay(d))+'</div>'; });
+  rows.forEach(function(rw){
+    h+='<div class="gl"><b>'+esc(PLAT[rw[1]]||rw[1])+'</b><span>'+esc(rw[0])+'</span></div>';
+    keys.forEach(function(d){
+      var p=ps.filter(function(x){ return dayIsoOf(x.scheduled_for)===d &&
+        hhmm(x.scheduled_for)===rw[0] && x.platform===rw[1]; })[0];
+      if(!p){
+        h+='<button class="gc none" type="button" data-add="'+esc(d)+'|'+esc(rw[0])+'|'+esc(rw[1])+'">+</button>';
+        return;
+      }
+      var b=band(p.duration_seconds);
+      var cls='gc'+(p.status==="queued"?" ok":"")+(p.status==="skipped"||p.status==="held"?" dead":"")+(p.id===selPost?" sel":"");
+      h+='<button class="gc '+cls.slice(3)+'" type="button" data-sel="'+p.id+'">'+
+         '<span class="cn">'+esc(p.title||p.display_name||"empty slot")+'</span>'+
+         '<span class="cs"><i class="dot"></i>'+
+           (p.duration_seconds? p.duration_seconds+"s" : "no length")+
+           (b&&b.k==="good"?'<i class="pl good">in band</i>':(b?'<i class="pl">'+b.t+'</i>':''))+
+           (p.status!=="planned"?'<i class="pl'+(p.status==="queued"?" good":"")+'">'+esc(p.status)+'</i>':'')+
+         '</span></button>';
+    });
+  });
+  h+='</div></div>';
+
+  var cur=ps.filter(function(p){return p.id===selPost;})[0];
+  if(cur) h+='<div class="gsel">'+slotCard(cur)+'</div>';
   return h;
 }
 function clipOptions(a,sel){
@@ -727,6 +804,16 @@ function wireBoard(){
   if(ns) ns.onclick=function(){ if(nd.value) addSlots(nd.value,[["12:00","instagram"]]); };
   if(nx) nx.onclick=function(){ if(nd.value) addSlots(nd.value, STD); };
 
+  var vg=document.getElementById("vG"), vc=document.getElementById("vC");
+  if(vg) vg.onclick=function(){ vGrid=true;  localStorage.setItem(LSGRID,"1"); render(); };
+  if(vc) vc.onclick=function(){ vGrid=false; localStorage.setItem(LSGRID,"0"); render(); };
+  document.querySelectorAll("[data-sel]").forEach(function(b){
+    b.onclick=function(){ selPost=b.dataset.sel; render();
+      var g=document.querySelector(".gsel"); if(g) g.scrollIntoView({block:"nearest"}); };
+  });
+  document.querySelectorAll("[data-add]").forEach(function(b){
+    b.onclick=function(){ var q=b.dataset.add.split("|"); addSlots(q[0],[[q[1],q[2]]]); };
+  });
   document.querySelectorAll(".slot").forEach(function(el){
     el.querySelector(".cl").onchange=function(){ saveSlot(el,true); };
     el.querySelector(".pl").onchange=function(){ saveSlot(el,true); };
