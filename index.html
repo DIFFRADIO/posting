@@ -105,6 +105,35 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .tx .src{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink3);margin:6px 0 0}
 .tx .pn{font-size:13px;color:var(--ink2);margin:7px 0 0}
 .tx .pn b{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:2px}
+
+/* two sides */
+.sidebar{display:flex;align-items:center;gap:12px;margin:0 0 20px;padding:9px 12px;border-radius:var(--radius);border:1px solid var(--line)}
+.sidebar .home{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;text-decoration:none;color:var(--ink3)}
+.sidebar .home:hover{color:var(--accent)}
+.sidebar .now{font-family:'Sora',sans-serif;font-weight:600;font-size:13px;letter-spacing:-.01em}
+.sidebar .swap{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;text-decoration:none;color:var(--ink2);border:1px solid var(--line);border-radius:2px;padding:5px 10px;background:var(--surface)}
+.sidebar .swap:hover{border-color:var(--accent);color:var(--accent)}
+.sidebar.c{background:var(--accent-soft);border-color:var(--accent-line)}
+.sidebar.c .now{color:var(--accent)}
+.sidebar.a{background:var(--ink);border-color:var(--ink)}
+.sidebar.a .home,.sidebar.a .now{color:var(--bg)}
+.sidebar.a .swap{background:transparent;border-color:var(--ink3);color:var(--bg)}
+.sidebar.a .swap:hover{border-color:var(--bg);color:var(--bg)}
+:root[data-side="analytics"] .mast{border-bottom-color:var(--ink3)}
+
+.mast.big{border-bottom-width:2px;margin-bottom:4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+.halfc{display:flex;flex-direction:column;gap:7px;text-decoration:none;color:inherit;padding:22px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);min-height:230px}
+.halfc:hover{border-color:var(--accent)}
+.halfc .k{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3)}
+.halfc b{font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(21px,3vw,27px);letter-spacing:-.02em;line-height:1.1}
+.halfc p{margin:2px 0 0;color:var(--ink2);font-size:14px;line-height:1.45}
+.halfc .st{margin-top:auto;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;color:var(--ink3);font-variant-numeric:tabular-nums}
+.halfc .arr{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);margin-top:9px}
+.halfc.create{border-left:4px solid var(--accent)}
+.halfc.create .k{color:var(--accent)}
+.halfc.analytics{border-left:4px solid var(--ink);background:var(--surface2)}
+@media(max-width:700px){.two{grid-template-columns:1fr}.halfc{min-height:0}}
 .empty{color:var(--ink2);font-size:13.5px;padding:13px 2px;border-bottom:1px solid var(--line)}
 .setup{border:1px dashed var(--line);border-radius:var(--radius);padding:14px;margin:16px 0 0}
 .setup p{margin:0 0 10px;color:var(--ink2);font-size:13.5px}
@@ -185,10 +214,10 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-22c";
+var BUILD = "2026-10-22d";
 
 var code=null, clips=[], posts=[], releases=[];
-var view="home", vArtist=null, vTab="board";
+var side=null, view="choose", vArtist=null, vTab="board";
 var fBand="", fSource="", fUnused=false;
 var LSOPEN="diff_posting_open";
 var openN={}, q="";
@@ -271,10 +300,12 @@ function refresh(){ return rpc("posting_posts",{p_code:code}).then(function(r){p
 /* ---------- routing ---------- */
 function route(){
   var h=(location.hash||"#/").replace(/^#/,"");
-  var m=h.match(/^\/artist\/([^\/]+)(?:\/(\w+))?/);
-  if(m){ view="artist"; vArtist=decodeURIComponent(m[1]); vTab=m[2]||"board"; }
-  else if(h.indexOf("/numbers")===0){ view="numbers"; }
-  else { view="home"; vArtist=null; }
+  var m=h.match(/^\/create\/artist\/([^\/]+)(?:\/(\w+))?/);
+  if(m){ side="create"; view="artist"; vArtist=decodeURIComponent(m[1]); vTab=m[2]||"board"; }
+  else if(h.indexOf("/create")===0){ side="create"; view="home"; vArtist=null; }
+  else if(h.indexOf("/analytics")===0){ side="analytics"; view="numbers"; vArtist=null; }
+  else { side=null; view="choose"; vArtist=null; }
+  document.documentElement.setAttribute("data-side", side||"none");
   render();
 }
 window.addEventListener("hashchange",route);
@@ -295,6 +326,8 @@ function postsOf(a){ return posts.filter(function(p){return p.artist_name===a;})
 /* ---------- shell ---------- */
 function render(){
   var h='<div class="wrap">';
+  if(view!=="choose") h+=sideBar();
+  if(view==="choose")  h+=chooseView();
   if(view==="home")    h+=homeView();
   if(view==="artist")  h+=artistView();
   if(view==="numbers") h+=numbersView();
@@ -304,12 +337,45 @@ function render(){
      '<span class="mono" style="float:right;font-size:10px;color:var(--ink3)">build '+BUILD+'</span></p></div></div>';
   app.innerHTML=h;
   document.getElementById("forget").onclick=function(){ localStorage.removeItem(LS); location.reload(); };
+  if(view==="choose") return;
   if(view==="home") wireTree();
   if(view==="artist"){ if(vTab==="board") wireBoard(); else wireClips(); }
 }
 function mast(eyebrow,title,tallyNum,tallyLabel){
   return '<header class="mast"><div><p class="eyebrow">'+esc(eyebrow)+'</p><h1>'+esc(title)+'</h1></div>'+
     (tallyNum!=null?'<div class="tally"><b>'+esc(tallyNum)+'</b>'+esc(tallyLabel)+'</div>':'')+'</header>';
+}
+
+/* ---------- the two sides ---------- */
+function sideBar(){
+  var ca = side==="create";
+  return '<div class="sidebar '+(ca?"c":"a")+'">'+
+    '<a class="home" href="#/" title="Both sides">DIFF Radio</a>'+
+    '<span class="now">'+(ca?"Post creation":"Analytics")+'</span>'+
+    '<a class="swap" href="'+(ca?"#/analytics":"#/create")+'">'+
+      (ca?"Analytics \u2192":"\u2190 Post creation")+'</a></div>';
+}
+function chooseView(){
+  var planned=posts.filter(function(p){return p.status!=="queued"&&p.status!=="skipped";}).length;
+  var q=posts.filter(function(p){return p.status==="queued";}).length;
+  var unused=clips.filter(function(c){return (+c.used_count)===0&&!c.retired;}).length;
+  var withUrl=posts.filter(function(p){return p.url;}).length;
+  return '<header class="mast big"><div><p class="eyebrow">DIFF Radio</p><h1>Posting</h1></div></header>'+
+   '<div class="two">'+
+    '<a class="halfc create" href="#/create">'+
+      '<span class="k">Post creation</span>'+
+      '<b>Build the week</b>'+
+      '<p>Clips by artist, the day-by-day board, titles and captions, and the queued tick.</p>'+
+      '<span class="st">'+planned+' slot'+(planned===1?"":"s")+' still to fill \u00b7 '+unused+' clips never posted</span>'+
+      '<span class="arr">Open \u2192</span></a>'+
+    '<a class="halfc analytics" href="#/analytics">'+
+      '<span class="k">Analytics</span>'+
+      '<b>See what worked</b>'+
+      '<p>What went out, what it did, and which titles, lengths and formats are actually earning views.</p>'+
+      '<span class="st">'+q+' post'+(q===1?"":"s")+' queued \u00b7 '+withUrl+' with a live link</span>'+
+      '<span class="arr">Open \u2192</span></a>'+
+   '</div>'+
+   '<p class="muted" style="margin-top:26px">Two separate jobs. Creation is where the week gets built; analytics is where it gets judged. Nothing in one changes anything in the other.</p>';
 }
 
 /* ---------- HOME: a tree, like the Dropbox folders ---------- */
@@ -337,7 +403,7 @@ function homeView(){
       '<span class="mono" style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)">A\u2013Z</span>'+
     '<button class="btn" id="expAll">Expand all</button>'+
       '<button class="btn" id="colAll">Collapse all</button>'+
-      '<span class="sp"></span><a class="btn" href="#/numbers">Numbers</a></div>'+
+      '<span class="sp"></span></div>'+
     '<div id="tree">'+treeHtml()+'</div>';
 }
 function treeHtml(){
@@ -434,7 +500,7 @@ function bindTree(){
   document.querySelectorAll(".tn[data-k]").forEach(function(el){
     el.onclick=function(ev){
       var g=ev.target.closest("[data-go]");
-      if(g){ location.hash="#/artist/"+encodeURIComponent(g.dataset.go); return; }
+      if(g){ location.hash="#/create/artist/"+encodeURIComponent(g.dataset.go); return; }
       var k=el.dataset.k;
       openN[k]=!isOpen(k); saveOpen();
       var t=document.getElementById("tree");
@@ -442,7 +508,7 @@ function bindTree(){
     };
   });
   document.querySelectorAll(".slim[data-go]").forEach(function(el){
-    el.onclick=function(){ location.hash="#/artist/"+encodeURIComponent(el.dataset.go); };
+    el.onclick=function(){ location.hash="#/create/artist/"+encodeURIComponent(el.dataset.go); };
   });
   wireClipRows();
 }
@@ -499,7 +565,7 @@ function artistView(){
   if(r.perf_date) sub.push((r.perf_label||"Performance")+" "+fmtDay(r.perf_date));
   if(r.interview_date) sub.push("Interview "+fmtDay(r.interview_date));
 
-  var h='<a class="back" href="#/">‹ All artists</a>'+
+  var h='<a class="back" href="#/create">‹ All artists</a>'+
     mast(sub.length?sub.join("  ·  "):"DIFF Radio · social", a,
          vTab==="board" ? q+" / "+ps.length : cs.length,
          vTab==="board" ? "queued" : "clips")+
@@ -509,7 +575,7 @@ function artistView(){
     '</div>';
   return h + (vTab==="board" ? boardView(a) : clipsView(a));
 }
-function go(t){ location.hash="#/artist/"+encodeURIComponent(vArtist)+"/"+t; }
+function go(t){ location.hash="#/create/artist/"+encodeURIComponent(vArtist)+"/"+t; }
 
 function boardView(a){
   var r=rel(a), ps=postsOf(a);
@@ -756,7 +822,7 @@ function numbersView(){
   var inBand=clips.filter(function(c){return c.duration_band==="15_to_25";}).length;
   var noDur=clips.filter(function(c){return !c.duration_seconds;}).length;
   var q=posts.filter(function(p){return p.status==="queued";}).length;
-  var h='<a class="back" href="#/">‹ All artists</a>'+
+  var h=''+
     mast("DIFF Radio · social","Numbers",posts.length,"slots on the board")+
     '<h2>Where this stands</h2><div class="cards">'+
     card(q,"ticked queued")+card(clips.length-used,"clips never posted")+
