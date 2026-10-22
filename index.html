@@ -186,6 +186,8 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
   .gl span{font-size:10px}
   .gc{padding:9px;min-height:62px;gap:4px}
   .gc .cn{font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .gc .cf{font-size:9.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .gc{min-height:70px}
   .gc .pl{display:none}
   .gc .cs{font-size:9px}
   .gc.none{min-height:62px}
@@ -193,6 +195,9 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
   .setup{padding:11px}
   .setup p{font-size:12.5px}
 }
+.gc .cf{font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.35;color:var(--ink3);word-break:break-word}
+.slim .ttl i{display:block;font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slim .ttl{white-space:normal}
 .empty{color:var(--ink2);font-size:13.5px;padding:13px 2px;border-bottom:1px solid var(--line)}
 .setup{border:1px dashed var(--line);border-radius:var(--radius);padding:14px;margin:16px 0 0}
 .setup p{margin:0 0 10px;color:var(--ink2);font-size:13.5px}
@@ -273,7 +278,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-22g";
+var BUILD = "2026-10-22h";
 
 var code=null, clips=[], posts=[], releases=[];
 var side=null, view="choose", vArtist=null, vTab="board";
@@ -523,7 +528,8 @@ function artistKids(a,f,qd){
       out+='<div class="slim" data-go="'+esc(a)+'">'+
         '<span class="tm">'+esc(hhmm(p.scheduled_for))+'</span>'+
         '<span class="pf">'+esc(PLAT[p.platform]||p.platform)+'</span>'+
-        '<span class="ttl'+(p.title?"":" none")+'">'+esc(p.title||p.display_name||"empty slot")+'</span>'+
+        '<span class="ttl'+(p.title?"":" none")+'">'+esc(p.title||p.display_name||"empty slot")+
+          (p.title&&p.display_name?'<i>'+esc(p.display_name)+'.mp4</i>':'')+'</span>'+
         '<span class="pill'+(p.status==="queued"?" q":"")+'">'+esc(p.status)+'</span></div>';
     });
     out+='</div>';
@@ -727,6 +733,7 @@ function gridView(a,days,keys){
       var cls='gc'+(p.status==="queued"?" ok":"")+(p.status==="skipped"||p.status==="held"?" dead":"")+(p.id===selPost?" sel":"");
       h+='<button class="gc '+cls.slice(3)+'" type="button" data-sel="'+p.id+'">'+
          '<span class="cn">'+esc(p.title||p.display_name||"empty slot")+'</span>'+
+         (p.title&&p.display_name?'<span class="cf">'+esc(p.display_name)+'.mp4</span>':'')+
          '<span class="cs"><i class="dot"></i>'+
            (p.duration_seconds? p.duration_seconds+"s" : "no length")+
            (b&&b.k==="good"?'<i class="pl good">in band</i>':(b?'<i class="pl">'+b.t+'</i>':''))+
