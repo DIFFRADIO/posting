@@ -91,6 +91,20 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .why{margin:2px 0 10px;padding:10px 12px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent);border-radius:var(--radius);font-size:13px;line-height:1.45}
 .why b{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
 .why.note{border-color:var(--line);background:var(--surface2);color:var(--ink2)}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0 0}
+.tags select,.tags input{font-size:13px;padding:6px 7px}
+.tags input.hk{flex:1 1 160px;min-width:120px}
+.tx{margin:9px 0 0;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface2)}
+.tx summary{cursor:pointer;list-style:none;padding:8px 11px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink2);display:flex;align-items:center;gap:8px}
+.tx summary::-webkit-details-marker{display:none}
+.tx summary::before{content:"\25b8";font-size:9px;color:var(--ink3)}
+.tx[open] summary::before{content:"\25be"}
+.tx summary .sp{margin-left:auto}
+.tx .body{padding:0 11px 11px}
+.tx textarea{width:100%;min-height:120px;resize:vertical;font-size:13.5px;line-height:1.5}
+.tx .src{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink3);margin:6px 0 0}
+.tx .pn{font-size:13px;color:var(--ink2);margin:7px 0 0}
+.tx .pn b{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:2px}
 .empty{color:var(--ink2);font-size:13.5px;padding:13px 2px;border-bottom:1px solid var(--line)}
 .setup{border:1px dashed var(--line);border-radius:var(--radius);padding:14px;margin:16px 0 0}
 .setup p{margin:0 0 10px;color:var(--ink2);font-size:13.5px}
@@ -576,17 +590,44 @@ function slotCard(p){
     '<div class="fld"><label>Caption / description<span class="sp"></span>'+
       '<button class="btn cpC">Copy</button></label>'+
       '<textarea class="ca" placeholder="caption, hashtags, the lot">'+esc(p.caption||"")+'</textarea></div>'+
+    '<div class="fld"><label>Live URL<span class="sp"></span>'+
+      (p.url?'<a class="btn" href="'+esc(p.url)+'" target="_blank" rel="noopener">Open</a>':'')+'</label>'+
+      '<input class="ur" type="text" value="'+esc(p.url||"")+'" placeholder="paste the link once it is live"></div>'+
+    '<div class="tags">'+
+      sel2("fm","Format",["story","question","opinion","performance","other"],p.format)+
+      sel2("tf","Title form",["statement","question","fragment"],p.title_form)+
+      chk("av","Speaks to you",p.addresses_viewer)+
+      chk("ol","Open loop",p.open_loop)+
+      chk("aq","Asks a question",p.asked_a_question)+
+      '<input class="hk" type="text" value="'+esc(p.topic||"")+'" placeholder="topic, e.g. self-doubt">'+
+    '</div>'+
+    (p.clip_id?'<details class="tx" data-c="'+p.clip_id+'"><summary>Clip transcript'+
+      '<span class="sp"></span><span class="ld">load</span></summary>'+
+      '<div class="body"><em style="font-style:normal;color:var(--ink3);font-size:13px">\u2026</em></div></details>':'')+
   '</div>';
+}
+function sel2(cls,label,opts,val){
+  return '<select class="'+cls+'"><option value="">'+esc(label)+'\u2026</option>'+
+    opts.map(function(o){return '<option value="'+o+'"'+(val===o?" selected":"")+'>'+
+      o.charAt(0).toUpperCase()+o.slice(1)+'</option>';}).join("")+'</select>';
+}
+function chk(cls,label,val){
+  return '<button class="btn '+cls+(val?' on':'')+'" data-v="'+(val?"1":"0")+'">'+esc(label)+'</button>';
 }
 function saveSlot(el,reload){
   var cur=posts.filter(function(p){return p.id===el.dataset.p;})[0];
   var day=dayIsoOf(cur.scheduled_for)||todayIso();
   var sel=el.querySelector(".cl").value;
+  function v(c){ var e=el.querySelector("."+c); return e?e.value:null; }
+  function b(c){ var e=el.querySelector("."+c); return e? (e.dataset.v==="1") : null; }
   var d={ clip_id:sel||null,
     scheduled_for:tsLocal(day, el.querySelector(".t").value||"12:00"),
     platform:el.querySelector(".pl").value,
     title:el.querySelector(".ti").value,
     caption:el.querySelector(".ca").value,
+    url:v("ur"),
+    format:v("fm")||null, title_form:v("tf")||null, topic:v("hk")||null,
+    addresses_viewer:b("av"), open_loop:b("ol"), asked_a_question:b("aq"),
     status:el.querySelector(".stx").value };
   if(!sel){ d.artist_name=cur.artist_name; d.source=cur.source; }
   return rpc("posting_save_post",{p_code:code,p_id:el.dataset.p,p_data:d})
@@ -631,6 +672,15 @@ function wireBoard(){
       var n=el.querySelector(".ti").value.length;
       i.textContent=n+"/60"; i.className=n>60?"over":"";
     };
+    ["ur","hk"].forEach(function(c){ var e=el.querySelector("."+c); if(e) e.onblur=function(){ saveSlot(el,false); }; });
+    ["fm","tf"].forEach(function(c){ var e=el.querySelector("."+c); if(e) e.onchange=function(){ saveSlot(el,false); }; });
+    ["av","ol","aq"].forEach(function(c){ var e=el.querySelector("."+c); if(e) e.onclick=function(ev){
+      ev.preventDefault();
+      e.dataset.v = e.dataset.v==="1" ? "0" : "1";
+      e.classList.toggle("on", e.dataset.v==="1");
+      saveSlot(el,false); }; });
+    var tx=el.querySelector("details.tx");
+    if(tx) tx.addEventListener("toggle",function(){ if(tx.open) loadTx(tx); });
     el.querySelector(".cpT").onclick=function(e){ e.preventDefault(); copy(el.querySelector(".ti").value,"Title"); };
     el.querySelector(".cpC").onclick=function(e){ e.preventDefault(); copy(el.querySelector(".ca").value,"Caption"); };
     el.querySelector(".stx").onchange=function(){ setStatus(el,el.querySelector(".stx").value); };
@@ -639,6 +689,29 @@ function wireBoard(){
       setStatus(el, cur.status==="queued"?"planned":"queued");
     };
   });
+}
+function loadTx(d){
+  if(d.dataset.loaded) return;
+  d.dataset.loaded="1";
+  var body=d.querySelector(".body");
+  rpc("posting_clip_text",{p_code:code,p_clip:d.dataset.c}).then(function(r){
+    var c=(r&&r[0])||{};
+    body.innerHTML =
+      '<textarea class="txa" placeholder="paste the transcript for this clip">'+esc(c.transcript||"")+'</textarea>'+
+      (c.transcript_source?'<p class="src">'+esc(c.transcript_source)+'</p>':'')+
+      '<div class="pn"><b>Names mentioned</b>'+
+        '<input type="text" class="pna" style="width:100%" value="'+esc(c.proper_nouns||"")+'" '+
+        'placeholder="people, venues, labels said out loud in this clip"></div>';
+    var ta=body.querySelector(".txa"), pn=body.querySelector(".pna");
+    ta.onblur=function(){ setClipText(d.dataset.c,"transcript",ta.value); };
+    pn.onblur=function(){ setClipText(d.dataset.c,"proper_nouns",pn.value); };
+    var ld=d.querySelector(".ld"); if(ld) ld.textContent = c.transcript ? "stored" : "empty";
+  }).catch(function(){ body.textContent="Couldn't load the transcript."; d.dataset.loaded=""; });
+}
+function setClipText(clip,field,value){
+  rpc("posting_set_clip_text",{p_code:code,p_clip:clip,p_field:field,p_value:value})
+    .then(function(){ toast(field==="transcript"?"transcript saved":"names saved"); })
+    .catch(function(){ toast("save failed"); });
 }
 function setStatus(el,st){
   rpc("posting_set_post_status",{p_code:code,p_id:el.dataset.p,p_status:st})
