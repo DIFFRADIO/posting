@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>DIFF Radio — Posting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -111,6 +114,8 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .sidebar .home{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;text-decoration:none;color:var(--ink3)}
 .sidebar .home:hover{color:var(--accent)}
 .sidebar .now{font-family:'Sora',sans-serif;font-weight:600;font-size:13px;letter-spacing:-.01em}
+.sidebar .bld{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.06em;color:var(--ink3)}
+.sidebar.a .bld{color:var(--ink3)}
 .sidebar .swap{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;text-decoration:none;color:var(--ink2);border:1px solid var(--line);border-radius:2px;padding:5px 10px;background:var(--surface)}
 .sidebar .swap:hover{border-color:var(--accent);color:var(--accent)}
 .sidebar.c{background:var(--accent-soft);border-color:var(--accent-line)}
@@ -239,7 +244,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-22e";
+var BUILD = "2026-10-22f";
 
 var code=null, clips=[], posts=[], releases=[];
 var side=null, view="choose", vArtist=null, vTab="board";
@@ -380,6 +385,7 @@ function sideBar(){
   return '<div class="sidebar '+(ca?"c":"a")+'">'+
     '<a class="home" href="#/" title="Both sides">DIFF Radio</a>'+
     '<span class="now">'+(ca?"Post creation":"Analytics")+'</span>'+
+    '<span class="bld">'+BUILD+'</span>'+
     '<a class="swap" href="'+(ca?"#/analytics":"#/create")+'">'+
       (ca?"Analytics \u2192":"\u2190 Post creation")+'</a></div>';
 }
