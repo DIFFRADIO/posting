@@ -198,6 +198,39 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .gc .cf{font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.35;color:var(--ink3);word-break:break-word}
 .slim .ttl i{display:block;font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .slim .ttl{white-space:normal}
+
+/* campaign status */
+:root{ --cs-done:#15803d; --cs-done-soft:#eaf6ee; --cs-done-line:#b7dcc3;
+       --cs-sched:#1d4ed8; --cs-sched-soft:#eaf0fd; --cs-sched-line:#bdd0f6; }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --cs-done:#4ade80; --cs-done-soft:#0e2117; --cs-done-line:#1f4a31;
+  --cs-sched:#7aa2f7; --cs-sched-soft:#111b33; --cs-sched-line:#24386b; }}
+:root[data-theme="dark"]{
+  --cs-done:#4ade80; --cs-done-soft:#0e2117; --cs-done-line:#1f4a31;
+  --cs-sched:#7aa2f7; --cs-sched-soft:#111b33; --cs-sched-line:#24386b; }
+.tn.a0{border-left:3px solid transparent;padding-left:9px}
+.tn.a0.cs-next{border-left-color:var(--accent)}
+.tn.a0.cs-sched{border-left-color:var(--cs-sched)}
+.tn.a0.cs-done{border-left-color:var(--cs-done)}
+.tn.a0.cs-later{border-left-color:var(--line)}
+.tn.a0.cs-later b{color:var(--ink2)}
+.tag.st-next{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
+.tag.st-sched{color:var(--cs-sched);border-color:var(--cs-sched-line);background:var(--cs-sched-soft)}
+.tag.st-done{color:var(--cs-done);border-color:var(--cs-done-line);background:var(--cs-done-soft)}
+.tag.st-later{color:var(--ink3)}
+.cbar{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:14px 0 0;padding:9px 12px;border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+.cbar b{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase}
+.cbar .dotc{width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}
+.cbar.cs-next{border-left-color:var(--accent);background:var(--accent-soft)}
+.cbar.cs-next b{color:var(--accent)} .cbar.cs-next .dotc{background:var(--accent)}
+.cbar.cs-sched{border-left-color:var(--cs-sched);background:var(--cs-sched-soft)}
+.cbar.cs-sched b{color:var(--cs-sched)} .cbar.cs-sched .dotc{background:var(--cs-sched)}
+.cbar.cs-sched .btn.on{background:var(--cs-sched);border-color:var(--cs-sched);color:#fff}
+.cbar.cs-done{border-left-color:var(--cs-done);background:var(--cs-done-soft)}
+.cbar.cs-done b{color:var(--cs-done)} .cbar.cs-done .dotc{background:var(--cs-done)}
+.cbar.cs-done .btn.on{background:var(--cs-done);border-color:var(--cs-done);color:#fff}
+.cbar.cs-later b{color:var(--ink3)}
+@media(max-width:640px){.cbar{padding:8px 10px;gap:7px}.cbar .btn{font-size:9.5px;padding:5px 8px}}
 .empty{color:var(--ink2);font-size:13.5px;padding:13px 2px;border-bottom:1px solid var(--line)}
 .setup{border:1px dashed var(--line);border-radius:var(--radius);padding:14px;margin:16px 0 0}
 .setup p{margin:0 0 10px;color:var(--ink2);font-size:13.5px}
@@ -278,7 +311,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-22h";
+var BUILD = "2026-10-22i";
 
 var code=null, clips=[], posts=[], releases=[];
 var side=null, view="choose", vArtist=null, vTab="board";
@@ -356,7 +389,7 @@ function gate(msg){
 }
 var app=document.getElementById("app");
 function load(fromGate){
-  Promise.all([rpc("posting_bank",{p_code:code}),rpc("posting_posts",{p_code:code}),rpc("posting_releases",{p_code:code})])
+  Promise.all([rpc("posting_bank",{p_code:code}),rpc("posting_posts",{p_code:code}),rpc("posting_campaigns",{p_code:code})])
   .then(function(r){
     if(!r[0]||!r[0].length){ localStorage.removeItem(LS); code=null; gate(fromGate?"Not recognised.":""); return; }
     clips=r[0]; posts=r[1]||[]; releases=r[2]||[]; route();
@@ -384,6 +417,47 @@ window.addEventListener("resize",function(){
 });
 
 /* ---------- model helpers ---------- */
+/* campaign colour: green done, blue scheduled, orange next two up, grey the rest */
+function upNext(){
+  var t=todayIso(), rows=[];
+  artists().forEach(function(a){ var r=rel(a);
+    if((r.campaign_status||"planned")!=="planned") return;
+    var d=r.perf_date||r.interview_date;
+    if(d&&d>=t) rows.push({a:a,d:d}); });
+  rows.sort(function(x,y){ return x.d<y.d?-1:1; });
+  return rows.slice(0,2).map(function(x){return x.a;});
+}
+function campaign(a){
+  var st=(rel(a).campaign_status)||"planned";
+  if(st==="complete")  return {k:"done", label:"Complete"};
+  if(st==="scheduled") return {k:"sched",label:"Scheduled"};
+  return upNext().indexOf(a)>=0 ? {k:"next", label:"Up next"} : {k:"later",label:"Later"};
+}
+function campaignBar(a){
+  var st=(rel(a).campaign_status)||"planned", cp=campaign(a);
+  var ps=postsOf(a), live=ps.filter(function(p){return p.status!=="skipped"&&p.status!=="held";});
+  var q=live.filter(function(p){return p.status==="queued";}).length;
+  var all = live.length>0 && q===live.length;
+  return '<div class="cbar cs-'+cp.k+'">'+
+    '<span class="dotc"></span><b>'+esc(cp.label)+'</b>'+
+    '<span class="mono" style="font-size:10.5px;color:var(--ink3)">'+q+' of '+live.length+' slots queued'+
+      (all&&st==="planned"?' \u00b7 all of them':'')+'</span>'+
+    '<span style="margin-left:auto"></span>'+
+    '<button class="btn cst'+(st==="scheduled"?" on":"")+'" data-st="'+(st==="scheduled"?"planned":"scheduled")+'">'+
+      (st==="scheduled"?"Scheduled \u2713":"Mark campaign scheduled")+'</button>'+
+    '<button class="btn cst'+(st==="complete"?" on":"")+'" data-st="'+(st==="complete"?"scheduled":"complete")+'">'+
+      (st==="complete"?"Complete \u2713":"Mark complete")+'</button></div>';
+}
+function wireCampaign(a){
+  document.querySelectorAll(".cst").forEach(function(b){
+    b.onclick=function(){
+      rpc("posting_set_campaign_status",{p_code:code,p_artist:a,p_status:b.dataset.st})
+        .then(function(){ return rpc("posting_campaigns",{p_code:code}); })
+        .then(function(r){ releases=r||[]; render(); toast("campaign "+b.dataset.st); })
+        .catch(function(){ toast("save failed"); });
+    };
+  });
+}
 function rel(a){ for(var i=0;i<releases.length;i++) if(releases[i].artist_name===a) return releases[i]; return {}; }
 function artists(){
   var s={}; clips.forEach(function(c){s[c.artist_name]=1;});
@@ -412,7 +486,7 @@ function render(){
   document.getElementById("forget").onclick=function(){ localStorage.removeItem(LS); location.reload(); };
   if(view==="choose") return;
   if(view==="home") wireTree();
-  if(view==="artist"){ if(vTab==="board") wireBoard(); else wireClips(); }
+  if(view==="artist"){ wireCampaign(vArtist); if(vTab==="board") wireBoard(); else wireClips(); }
 }
 function mast(eyebrow,title,tallyNum,tallyLabel){
   return '<header class="mast"><div><p class="eyebrow">'+esc(eyebrow)+'</p><h1>'+esc(title)+'</h1></div>'+
@@ -491,10 +565,11 @@ function treeHtml(){
     if(r.interview_date) dates.push("Interview "+fmtDay(r.interview_date));
     var qd=f.posts.filter(function(p){return p.status==="queued";}).length;
 
-    out+='<div class="tn a0'+(op?" op":"")+'" data-k="'+esc(k)+'">'+
+    var cp=campaign(a);
+    out+='<div class="tn a0 cs-'+cp.k+(op?" op":"")+'" data-k="'+esc(k)+'">'+
       '<span class="car">▸</span><b>'+esc(a)+'</b>'+
       (r.episode_no?'<span class="tag">Ep. '+r.episode_no+'</span>':'')+
-      (nx===a?'<span class="tag next">Next out</span>':'')+
+      '<span class="tag st-'+cp.k+'">'+esc(cp.label)+'</span>'+
       '<span class="meta">'+(dates.length?esc(dates.join("  ·  ")):"no dates")+'</span>'+
       '<span class="open" data-go="'+esc(a)+'">Open</span></div>'+
       '<div class="kids'+(op?" op":"")+'">'+artistKids(a,f,qd)+'</div>';
@@ -647,7 +722,7 @@ function artistView(){
     '<div class="tabs">'+
       '<button onclick="go(\'board\')" class="'+(vTab==="board"?"on":"")+'">Board</button>'+
       '<button onclick="go(\'clips\')" class="'+(vTab==="clips"?"on":"")+'">Clips</button>'+
-    '</div>';
+    '</div>'+campaignBar(a);
   return h + (vTab==="board" ? boardView(a) : clipsView(a));
 }
 function go(t){ location.hash="#/create/artist/"+encodeURIComponent(vArtist)+"/"+t; }
