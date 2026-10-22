@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 :root{
+  --mi:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'><circle cx='11' cy='11' r='7'/><path d='M20 20l-4.2-4.2'/></svg>");
   --bg:#faf7f5; --surface:#fff; --surface2:#f3ece8; --line:#e2d7d0;
   --ink:#1a1512; --ink2:#6b5d55; --ink3:#9d8d83;
   --accent:#c2410c; --accent-soft:#fdeee4; --accent-line:#f0c4aa; --radius:3px;
@@ -109,6 +110,48 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:var(--ink2);font-size:13px}
 .foot p{margin:0 0 7px;max-width:70ch}
 .foot button{background:none;border:0;color:var(--accent);font:inherit;text-decoration:underline;cursor:pointer;padding:0}
+
+/* tree */
+.srch{position:relative;margin:16px 0 0}
+.srch input{width:100%;padding:11px 12px 11px 34px;font-size:15px}
+.srch::before{content:"";position:absolute;left:12px;top:50%;width:14px;height:14px;transform:translateY(-50%);opacity:.45;pointer-events:none;background:currentColor;color:var(--ink2);-webkit-mask:var(--mi) center/contain no-repeat;mask:var(--mi) center/contain no-repeat}
+.tctl{display:flex;gap:8px;align-items:center;margin:10px 0 2px}
+.tctl .sp{margin-left:auto}
+.tree{margin-top:6px;border-top:1px solid var(--line)}
+.tn{display:flex;align-items:center;gap:8px;padding:9px 6px;border-bottom:1px solid var(--line);cursor:pointer}
+.tn:hover{background:var(--surface2)}
+.tn .car{flex:0 0 13px;font-size:10px;color:var(--ink3);transition:transform .14s;display:inline-block;text-align:center}
+.tn.op .car{transform:rotate(90deg)}
+.tn b{font-weight:600}
+.tn .meta{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);white-space:nowrap}
+.tn .tag{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--line);border-radius:2px;color:var(--ink3)}
+.tn .tag.next{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
+.tn.a0{padding:13px 6px;border-bottom:1px solid var(--ink)}
+.tn.a0 b{font-family:'Sora',sans-serif;font-size:19px;letter-spacing:-.02em}
+.tn.l1{padding-left:21px}
+.tn.l2{padding-left:40px}
+.tn.l1 b{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+.tn.l2 b{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--ink2);text-transform:none}
+.tn .open{font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);border:1px solid var(--line);border-radius:2px;padding:3px 7px}
+.tn:hover .open{border-color:var(--accent);color:var(--accent)}
+.kids{display:none}
+.kids.op{display:block}
+.row.l1{padding-left:21px}
+.row.l2{padding-left:40px}
+.slim{display:grid;grid-template-columns:52px 86px 1fr auto;gap:0 12px;align-items:center;padding:8px 6px 8px 40px;border-bottom:1px solid var(--line);cursor:pointer}
+.slim:hover{background:var(--surface2)}
+.slim .tm{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-variant-numeric:tabular-nums}
+.slim .pf{font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+.slim .ttl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.slim .ttl.none{color:var(--ink3);font-style:italic}
+.slim .pill{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--line);border-radius:2px;color:var(--ink3)}
+.slim .pill.q{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
+.nores{color:var(--ink2);font-size:13.5px;padding:18px 6px}
+@media(max-width:640px){
+  .tn.l2{padding-left:30px}.row.l2{padding-left:24px}
+  .slim{grid-template-columns:48px 1fr auto;padding-left:30px}
+  .slim .pf{display:none}
+}
 @media(max-width:640px){
   .wrap{padding-top:24px}
   .row{grid-template-columns:22px 1fr;row-gap:9px}
@@ -129,6 +172,11 @@ var LS  = "diff_posting_code";
 var code=null, clips=[], posts=[], releases=[];
 var view="home", vArtist=null, vTab="board";
 var fBand="", fSource="", fUnused=false;
+var LSOPEN="diff_posting_open";
+var openN={}, q="";
+try{ openN=JSON.parse(localStorage.getItem(LSOPEN)||"{}")||{}; }catch(e){ openN={}; }
+function saveOpen(){ try{ localStorage.setItem(LSOPEN,JSON.stringify(openN)); }catch(e){} }
+function isOpen(k){ return !!openN[k]; }
 
 /* ---------- plumbing ---------- */
 function rpc(fn, body){
@@ -240,6 +288,7 @@ function render(){
      '<p><button id="forget">Forget this device</button></p></div></div>';
   app.innerHTML=h;
   document.getElementById("forget").onclick=function(){ localStorage.removeItem(LS); location.reload(); };
+  if(view==="home") wireTree();
   if(view==="artist"){ if(vTab==="board") wireBoard(); else wireClips(); }
 }
 function mast(eyebrow,title,tallyNum,tallyLabel){
@@ -247,38 +296,181 @@ function mast(eyebrow,title,tallyNum,tallyLabel){
     (tallyNum!=null?'<div class="tally"><b>'+esc(tallyNum)+'</b>'+esc(tallyLabel)+'</div>':'')+'</header>';
 }
 
-/* ---------- HOME: artists by release date ---------- */
+/* ---------- HOME: a tree, like the Dropbox folders ---------- */
+function hit(v){ return q && String(v||"").toLowerCase().indexOf(q)>=0; }
+function nextOut(){
+  var today=todayIso(), best=null;
+  artists().forEach(function(a){ var r=rel(a), d=r.perf_date||r.interview_date;
+    if(d&&d>=today&&(!best||d<best.d)) best={a:a,d:d}; });
+  return best?best.a:null;
+}
+/* what survives the search for one artist; null = artist drops out entirely */
+function sift(a){
+  var cs=clipsOf(a), ps=postsOf(a);
+  if(!q || hit(a)) return {clips:cs, posts:ps, forced:!!q};
+  var fc=cs.filter(function(c){ return hit(c.display_name)||hit(c.file_name)||hit(c.topic); });
+  var fp=ps.filter(function(p){ return hit(p.title)||hit(p.caption)||hit(p.display_name)||hit(p.platform)||hit(p.status); });
+  if(!fc.length && !fp.length) return null;
+  return {clips:fc, posts:fp, forced:true};
+}
 function homeView(){
-  var as=artists();
-  var h=mast("DIFF Radio · social","Posting",as.length,as.length===1?"artist":"artists")+
-    '<div class="bar"><span class="mono" style="font-size:11px;color:var(--ink3)">Most recent release first</span>'+
-    '<span class="sp"></span><a class="btn" href="#/numbers">Numbers</a></div><div class="alist">';
-  var today=todayIso(), upcoming=null;
-  as.forEach(function(a){ var r=rel(a);
-    var d=r.perf_date||r.interview_date;
-    if(d&&d>=today&&(!upcoming||d<upcoming.d)) upcoming={a:a,d:d}; });
-
+  return mast("DIFF Radio · social","Posting",null,null)+
+    '<div class="srch"><input id="q" type="search" autocomplete="off" spellcheck="false" '+
+      'placeholder="Search artists, clips, titles…" value="'+esc(q)+'"></div>'+
+    '<div class="tctl">'+
+      '<button class="btn" id="expAll">Expand all</button>'+
+      '<button class="btn" id="colAll">Collapse all</button>'+
+      '<span class="sp"></span><a class="btn" href="#/numbers">Numbers</a></div>'+
+    '<div id="tree">'+treeHtml()+'</div>';
+}
+function treeHtml(){
+  var as=artists(), nx=nextOut(), out="", shown=0;
   as.forEach(function(a){
-    var r=rel(a), cs=clipsOf(a), ps=postsOf(a);
-    var q=ps.filter(function(p){return p.status==="queued";}).length;
-    var unused=cs.filter(function(c){return (+c.used_count)===0;}).length;
-    var next=upcoming&&upcoming.a===a;
+    var f=sift(a); if(!f) return;
+    shown++;
+    var r=rel(a), k="a:"+a, op=isOpen(k)||f.forced;
     var dates=[];
-    if(r.perf_date)      dates.push((r.perf_label||"Performance")+" · "+fmtDay(r.perf_date));
-    if(r.interview_date) dates.push("Interview · "+fmtDay(r.interview_date));
-    h+='<a class="acard" href="#/artist/'+encodeURIComponent(a)+'">'+
-      '<div class="an"><b>'+esc(a)+'</b>'+
-        (r.episode_no?'<em>Ep. '+r.episode_no+'</em>':'')+
-        (next?'<em class="next">Next out</em>':'')+'</div>'+
-      '<div class="ad">'+(dates.length?esc(dates.join("   ·   ")):"No release dates set")+'</div>'+
-      '<div class="as">'+
-        '<div><b>'+cs.length+'</b>clips</div>'+
-        '<div><b>'+unused+'</b>never posted</div>'+
-        '<div><b>'+ps.length+'</b>slots</div>'+
-        '<div><b>'+q+'</b>queued</div>'+
-      '</div></a>';
+    if(r.perf_date)      dates.push((r.perf_label||"Performance")+" "+fmtDay(r.perf_date));
+    if(r.interview_date) dates.push("Interview "+fmtDay(r.interview_date));
+    var qd=f.posts.filter(function(p){return p.status==="queued";}).length;
+
+    out+='<div class="tn a0'+(op?" op":"")+'" data-k="'+esc(k)+'">'+
+      '<span class="car">▸</span><b>'+esc(a)+'</b>'+
+      (r.episode_no?'<span class="tag">Ep. '+r.episode_no+'</span>':'')+
+      (nx===a?'<span class="tag next">Next out</span>':'')+
+      '<span class="meta">'+(dates.length?esc(dates.join("  ·  ")):"no dates")+'</span>'+
+      '<span class="open" data-go="'+esc(a)+'">Open</span></div>'+
+      '<div class="kids'+(op?" op":"")+'">'+artistKids(a,f,qd)+'</div>';
   });
-  return h+'</div>';
+  if(!shown) out='<p class="nores">Nothing matches “'+esc(q)+'”.</p>';
+  return '<div class="tree">'+out+'</div>';
+}
+function artistKids(a,f,qd){
+  var out="";
+  /* board folder */
+  var days={}; f.posts.forEach(function(p){ var d=dayIsoOf(p.scheduled_for)||"unscheduled";
+    (days[d]=days[d]||[]).push(p); });
+  var dk=Object.keys(days).sort();
+  var bk="a:"+a+"/board", bop=isOpen(bk)||f.forced;
+  out+='<div class="tn l1'+(bop?" op":"")+'" data-k="'+esc(bk)+'">'+
+    '<span class="car">▸</span><b>Board</b>'+
+    '<span class="meta">'+f.posts.length+' slot'+(f.posts.length===1?"":"s")+' · '+qd+' queued</span></div>'+
+    '<div class="kids'+(bop?" op":"")+'">';
+  if(!dk.length){
+    out+='<p class="nores" style="padding-left:40px">No slots yet — open the artist to set a day up.</p>';
+  }
+  dk.forEach(function(d){
+    var day=days[d].sort(function(x,y){return (x.scheduled_for||"").localeCompare(y.scheduled_for||"");});
+    var dq=day.filter(function(p){return p.status==="queued";}).length;
+    var k="a:"+a+"/board/"+d, op=isOpen(k)||f.forced;
+    out+='<div class="tn l2'+(op?" op":"")+'" data-k="'+esc(k)+'">'+
+      '<span class="car">▸</span><b>'+esc(d==="unscheduled"?"No date":fmtDay(d))+'</b>'+
+      '<span class="meta">'+dq+' / '+day.length+' queued</span></div>'+
+      '<div class="kids'+(op?" op":"")+'">';
+    day.forEach(function(p){
+      out+='<div class="slim" data-go="'+esc(a)+'">'+
+        '<span class="tm">'+esc(hhmm(p.scheduled_for))+'</span>'+
+        '<span class="pf">'+esc(PLAT[p.platform]||p.platform)+'</span>'+
+        '<span class="ttl'+(p.title?"":" none")+'">'+esc(p.title||p.display_name||"empty slot")+'</span>'+
+        '<span class="pill'+(p.status==="queued"?" q":"")+'">'+esc(p.status)+'</span></div>';
+    });
+    out+='</div>';
+  });
+  out+='</div>';
+
+  /* clip folders, one per source */
+  var byS={}; f.clips.forEach(function(c){ (byS[c.source]=byS[c.source]||[]).push(c); });
+  Object.keys(byS).sort().forEach(function(sc){
+    var list=byS[sc], k="a:"+a+"/src/"+sc, op=isOpen(k)||f.forced;
+    var unused=list.filter(function(c){return (+c.used_count)===0;}).length;
+    var inb=list.filter(function(c){return c.duration_band==="15_to_25";}).length;
+    out+='<div class="tn l1'+(op?" op":"")+'" data-k="'+esc(k)+'">'+
+      '<span class="car">▸</span><b>'+esc(SRC[sc]||sc)+'</b>'+
+      '<span class="meta">'+list.length+' clips · '+inb+' in band · '+unused+' unposted</span></div>'+
+      '<div class="kids'+(op?" op":"")+'">'+
+      list.map(function(c,i){ return clipRow(c,i,"l2"); }).join("")+'</div>';
+  });
+  return out;
+}
+function wireTree(){
+  var qi=document.getElementById("q");
+  if(qi){
+    qi.oninput=function(){
+      q=qi.value.trim().toLowerCase();
+      var t=document.getElementById("tree");
+      if(t){ t.innerHTML=treeHtml(); bindTree(); }
+    };
+  }
+  var e=document.getElementById("expAll"), c=document.getElementById("colAll");
+  if(e) e.onclick=function(){
+    artists().forEach(function(a){
+      openN["a:"+a]=true; openN["a:"+a+"/board"]=true;
+      clipsOf(a).forEach(function(x){ openN["a:"+a+"/src/"+x.source]=true; });
+      postsOf(a).forEach(function(p){ openN["a:"+a+"/board/"+(dayIsoOf(p.scheduled_for)||"unscheduled")]=true; });
+    });
+    saveOpen(); render();
+  };
+  if(c) c.onclick=function(){ openN={}; saveOpen(); render(); };
+  bindTree();
+}
+function bindTree(){
+  document.querySelectorAll(".tn[data-k]").forEach(function(el){
+    el.onclick=function(ev){
+      var g=ev.target.closest("[data-go]");
+      if(g){ location.hash="#/artist/"+encodeURIComponent(g.dataset.go); return; }
+      var k=el.dataset.k;
+      openN[k]=!isOpen(k); saveOpen();
+      var t=document.getElementById("tree");
+      if(t){ t.innerHTML=treeHtml(); bindTree(); }
+    };
+  });
+  document.querySelectorAll(".slim[data-go]").forEach(function(el){
+    el.onclick=function(){ location.hash="#/artist/"+encodeURIComponent(el.dataset.go); };
+  });
+  wireClipRows();
+}
+
+/* one clip row, shared by the tree and the artist Clips tab */
+function clipRow(c,i,lvl){
+  var b=band(c.duration_seconds), u=+c.used_count||0, url=clipUrl(c);
+  return '<div class="row '+(lvl||"")+(c.retired?" off":"")+'">'+
+    '<div class="n">'+(i+1)+'</div>'+
+    '<div class="nm"><b>'+esc(c.display_name)+'</b><span>'+esc(c.file_name)+(u?" · posted "+u+"×":"")+'</span></div>'+
+    '<div class="dur"><input class="d" data-id="'+c.id+'" type="number" min="1" max="600" value="'+(c.duration_seconds||"")+'" inputmode="numeric"><em class="mono" style="font-size:11px;color:var(--ink3);font-style:normal">s</em></div>'+
+    '<div class="act">'+(b?'<span class="band '+b.k+'">'+b.t+'</span>':'<span class="band">—</span>')+
+      (url?'<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Clip</a>':'')+
+      '<button class="btn r'+(c.retired?" on":"")+'" data-id="'+c.id+'" data-r="'+(c.retired?"0":"1")+'">'+
+        (c.retired?"Retired":"Retire")+'</button></div></div>';
+}
+function wireClipRows(){
+  document.querySelectorAll("input.d").forEach(function(el){
+    el.onclick=function(ev){ ev.stopPropagation(); };
+    el.onchange=function(){
+      var v=el.value.trim()===""?null:parseInt(el.value,10);
+      rpc("posting_set_duration",{p_code:code,p_clip:el.dataset.id,p_seconds:v}).then(function(){
+        var c=clips.filter(function(x){return x.id===el.dataset.id;})[0];
+        if(c){ c.duration_seconds=v;
+          c.duration_band=v==null?null:(v<15?"under_15":(v<=25?"15_to_25":"over_25")); }
+        var t=document.getElementById("tree");
+        if(t){ t.innerHTML=treeHtml(); bindTree(); } else render();
+      }).catch(function(){ toast("save failed"); });
+    };
+  });
+  document.querySelectorAll("button.r").forEach(function(el){
+    el.onclick=function(ev){
+      ev.stopPropagation();
+      var want=el.dataset.r==="1";
+      rpc("posting_set_retired",{p_code:code,p_clip:el.dataset.id,p_retired:want}).then(function(){
+        var c=clips.filter(function(x){return x.id===el.dataset.id;})[0];
+        if(c) c.retired=want;
+        var t=document.getElementById("tree");
+        if(t){ t.innerHTML=treeHtml(); bindTree(); } else render();
+      }).catch(function(){ toast("save failed"); });
+    };
+  });
+  document.querySelectorAll(".row a.btn").forEach(function(el){
+    el.onclick=function(ev){ ev.stopPropagation(); };
+  });
 }
 
 /* ---------- ARTIST ---------- */
@@ -468,17 +660,7 @@ function clipsView(a){
   var byS={}; list.forEach(function(c){ (byS[c.source]=byS[c.source]||[]).push(c); });
   Object.keys(byS).sort().forEach(function(s){
     h+='<h3>'+esc(SRC[s]||s)+'</h3>';
-    byS[s].forEach(function(c,i){
-      var b=band(c.duration_seconds), u=+c.used_count||0, url=clipUrl(c);
-      h+='<div class="row'+(c.retired?" off":"")+'">'+
-        '<div class="n">'+(i+1)+'</div>'+
-        '<div class="nm"><b>'+esc(c.display_name)+'</b><span>'+esc(c.file_name)+(u?" · posted "+u+"×":"")+'</span></div>'+
-        '<div class="dur"><input class="d" data-id="'+c.id+'" type="number" min="1" max="600" value="'+(c.duration_seconds||"")+'" inputmode="numeric"><em class="mono" style="font-size:11px;color:var(--ink3);font-style:normal">s</em></div>'+
-        '<div class="act">'+(b?'<span class="band '+b.k+'">'+b.t+'</span>':'<span class="band">—</span>')+
-          (url?'<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Clip</a>':'')+
-          '<button class="btn r'+(c.retired?"":" on")+'" data-id="'+c.id+'" data-r="'+(c.retired?"0":"1")+'">'+
-            (c.retired?"Retired":"Use")+'</button></div></div>';
-    });
+    byS[s].forEach(function(c,i){ h+=clipRow(c,i,""); });
   });
   return h;
 }
@@ -487,26 +669,7 @@ function wireClips(){
   if(s) s.onchange=function(){ fSource=s.value; render(); };
   if(b) b.onchange=function(){ fBand=b.value; render(); };
   if(u) u.onclick=function(){ fUnused=!fUnused; render(); };
-  document.querySelectorAll("input.d").forEach(function(el){
-    el.onchange=function(){
-      var v=el.value.trim()===""?null:parseInt(el.value,10);
-      rpc("posting_set_duration",{p_code:code,p_clip:el.dataset.id,p_seconds:v}).then(function(){
-        var c=clips.filter(function(x){return x.id===el.dataset.id;})[0];
-        if(c){ c.duration_seconds=v;
-          c.duration_band=v==null?null:(v<15?"under_15":(v<=25?"15_to_25":"over_25")); }
-        render();
-      }).catch(function(){ toast("save failed"); });
-    };
-  });
-  document.querySelectorAll("button.r").forEach(function(el){
-    el.onclick=function(){
-      var want=el.dataset.r==="1";
-      rpc("posting_set_retired",{p_code:code,p_clip:el.dataset.id,p_retired:want}).then(function(){
-        var c=clips.filter(function(x){return x.id===el.dataset.id;})[0];
-        if(c) c.retired=want; render();
-      }).catch(function(){ toast("save failed"); });
-    };
-  });
+  wireClipRows();
 }
 
 /* ---------- NUMBERS ---------- */
