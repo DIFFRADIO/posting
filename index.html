@@ -239,6 +239,10 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .gate p{color:var(--ink2);font-size:14px;margin:10px 0 18px}
 .gate input{width:100%;padding:11px 12px;font-family:'IBM Plex Mono',monospace;font-size:15px;text-align:center}
 .gate button{margin-top:10px;width:100%;padding:11px;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:var(--radius);cursor:pointer}
+.gate .alt{margin:16px 0 0}
+.gate .alt button{background:none;border:0;color:var(--ink3);font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;text-decoration:underline;cursor:pointer;padding:0}
+.gate .alt button:hover{color:var(--accent)}
+.gate button:disabled{opacity:.6;cursor:default}
 .err{color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:11.5px;margin-top:12px;min-height:16px}
 .muted{color:var(--ink2);font-size:13px;margin:13px 0 0;max-width:72ch}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0 0}
@@ -307,13 +311,16 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 <body>
 <div id="app"></div>
 <div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-22i";
+var BUILD = "2026-10-23a";
 
 var code=null, clips=[], posts=[], releases=[];
+var sb=null, session=null, me=null;
+var REDIRECT = location.origin + location.pathname;
 var side=null, view="choose", vArtist=null, vTab="board";
 var fBand="", fSource="", fUnused=false;
 var LSGRID="diff_posting_grid";
@@ -329,8 +336,9 @@ function isOpen(k){ return !!openN[k]; }
 
 /* ---------- plumbing ---------- */
 function rpc(fn, body){
+  var tok = (session && session.access_token) || KEY;
   return fetch(SB+"/rest/v1/rpc/"+fn,{method:"POST",
-    headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},
+    headers:{apikey:KEY,Authorization:"Bearer "+tok,"Content-Type":"application/json"},
     body:JSON.stringify(body)}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); });
 }
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
@@ -377,21 +385,57 @@ function todayIso(){ var d=new Date();
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 
 /* ---------- gate + load ---------- */
-function gate(msg){
-  app.innerHTML='<div class="gate"><p class="eyebrow">DIFF Radio</p><h1>Posting</h1>'+
-    '<p>Enter your access code.</p>'+
-    '<input id="c" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="code">'+
-    '<button id="go">Open</button><div class="err">'+esc(msg||"")+'</div></div>';
-  var i=document.getElementById("c"); i.focus();
-  function go(){ var v=i.value.trim(); if(!v) return; localStorage.setItem(LS,v); code=v; load(true); }
-  document.getElementById("go").onclick=go;
-  i.onkeydown=function(e){ if(e.key==="Enter") go(); };
+function gate(msg, mode){
+  mode = mode || "email";
+  var who = session && session.user ? session.user.email : null;
+  var h='<div class="gate"><p class="eyebrow">DIFF Radio</p><h1>Posting</h1>';
+  if(mode==="email"){
+    h+='<p>Sign in and a link will arrive in your inbox.</p>'+
+       '<input id="em" type="email" autocomplete="email" autocapitalize="off" spellcheck="false" '+
+         'placeholder="you@diffradio.com" value="'+esc(who||"")+'">'+
+       '<button id="go">Email me a link</button>'+
+       '<div class="err">'+esc(msg||"")+'</div>'+
+       '<p class="alt"><button id="useCode">Use an access code instead</button></p>';
+  } else {
+    h+='<p>Enter your access code.</p>'+
+       '<input id="c" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="code">'+
+       '<button id="go">Open</button>'+
+       '<div class="err">'+esc(msg||"")+'</div>'+
+       '<p class="alt"><button id="useEmail">Sign in by email instead</button></p>';
+  }
+  app.innerHTML = h + '</div>';
+
+  if(mode==="email"){
+    var e=document.getElementById("em"); e.focus();
+    function send(){
+      var v=e.value.trim();
+      if(!v || v.indexOf("@")<0){ document.querySelector(".err").textContent="That isn\u2019t an email address."; return; }
+      if(!sb){ document.querySelector(".err").textContent="Sign-in didn\u2019t load. Use an access code."; return; }
+      var b=document.getElementById("go"); b.disabled=true; b.textContent="Sending\u2026";
+      sb.auth.signInWithOtp({email:v, options:{emailRedirectTo:REDIRECT}}).then(function(r){
+        if(r.error){ b.disabled=false; b.textContent="Email me a link";
+          document.querySelector(".err").textContent=r.error.message||"Couldn\u2019t send it."; return; }
+        app.innerHTML='<div class="gate"><p class="eyebrow">DIFF Radio</p><h1>Check your email</h1>'+
+          '<p>A sign-in link is on its way to <b>'+esc(v)+'</b>. It expires in an hour \u2014 open it on the device you want to use.</p></div>';
+      });
+    }
+    document.getElementById("go").onclick=send;
+    e.onkeydown=function(ev){ if(ev.key==="Enter") send(); };
+    document.getElementById("useCode").onclick=function(){ gate("","code"); };
+  } else {
+    var i=document.getElementById("c"); i.focus();
+    function go(){ var v=i.value.trim(); if(!v) return; localStorage.setItem(LS,v); code=v; load(true); }
+    document.getElementById("go").onclick=go;
+    i.onkeydown=function(ev){ if(ev.key==="Enter") go(); };
+    document.getElementById("useEmail").onclick=function(){ gate("","email"); };
+  }
 }
 var app=document.getElementById("app");
 function load(fromGate){
   Promise.all([rpc("posting_bank",{p_code:code}),rpc("posting_posts",{p_code:code}),rpc("posting_campaigns",{p_code:code})])
   .then(function(r){
-    if(!r[0]||!r[0].length){ localStorage.removeItem(LS); code=null; gate(fromGate?"Not recognised.":""); return; }
+    if(!r[0]||!r[0].length){ localStorage.removeItem(LS); code=null;
+      gate(fromGate?(session?"That address isn\u2019t on the list.":"Not recognised."):"", session?"email":(fromGate?"code":"email")); return; }
     clips=r[0]; posts=r[1]||[]; releases=r[2]||[]; route();
   }).catch(function(){
     app.innerHTML='<div class="wrap"><p class="muted">Couldn’t reach the database. Check your connection and reload.</p></div>';
@@ -480,10 +524,13 @@ function render(){
   if(view==="numbers") h+=numbersView();
   h+='<div class="foot"><p>Ticking a slot <b>queued</b> is the record — there is no second step. '+
      'Queued means it is sitting in the scheduler, not that it has gone out.</p>'+
-     '<p><button id="forget">Forget this device</button>'+
+     '<p>'+(me&&me.email?'<span class="mono" style="font-size:11px;color:var(--ink3)">'+esc(me.email)+' \u00b7 </span>':'')+'<button id="forget">'+(session?"Sign out":"Forget this device")+'</button>'+
      '<span class="mono" style="float:right;font-size:10px;color:var(--ink3)">build '+BUILD+'</span></p></div></div>';
   app.innerHTML=h;
-  document.getElementById("forget").onclick=function(){ localStorage.removeItem(LS); location.reload(); };
+  document.getElementById("forget").onclick=function(){
+    localStorage.removeItem(LS);
+    if(sb) sb.auth.signOut().then(function(){ location.reload(); }); else location.reload();
+  };
   if(view==="choose") return;
   if(view==="home") wireTree();
   if(view==="artist"){ wireCampaign(vArtist); if(vTab==="board") wireBoard(); else wireClips(); }
@@ -1075,8 +1122,32 @@ function card(n,l){ return '<div class="card"><b>'+esc(n)+'</b><span>'+esc(l)+'<
 function find(t,p){ return '<div class="find"><b>'+esc(t)+'</b><p>'+esc(p)+'</p></div>'; }
 
 /* ---------- boot ---------- */
-code=localStorage.getItem(LS);
-if(code) load(false); else gate("");
+function boot(){
+  code = localStorage.getItem(LS);
+  if(!(window.supabase && window.supabase.createClient)){
+    if(code) load(false); else gate("Sign-in didn\u2019t load \u2014 use your access code.","code");
+    return;
+  }
+  sb = window.supabase.createClient(SB, KEY, {
+    auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, storageKey:"diff_posting_auth" }
+  });
+  sb.auth.onAuthStateChange(function(_e, sess){ session = sess || null; });
+  sb.auth.getSession().then(function(r){
+    session = (r && r.data && r.data.session) || null;
+    if(history.replaceState && location.hash.indexOf("access_token")>=0)
+      history.replaceState(null,"",location.pathname+location.search);
+    if(session) return rpc("posting_me",{}).then(function(rows){
+      me = (rows&&rows[0])||null;
+      if(me && me.ok){ code=null; load(false); }
+      else { sb.auth.signOut(); session=null;
+             gate("That address isn\u2019t on the list. Ask Matt to add it.","email"); }
+    });
+    if(code) load(false); else gate("","email");
+  }).catch(function(){
+    if(code) load(false); else gate("","email");
+  });
+}
+boot();
 </script>
 </body>
 </html>
