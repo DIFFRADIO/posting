@@ -240,6 +240,13 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .ckh span{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--ink3);display:block;margin-top:2px}
 .ckh em{margin-left:auto;font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink3);font-variant-numeric:tabular-nums}
 .ckh em.all{color:var(--accent)}
+.tabs button i{font-style:normal;font-size:9.5px;color:var(--ink3);letter-spacing:0}
+.tabs button.on i{color:var(--accent)}
+.ckh.all{border-bottom-color:var(--accent-line)}
+.ckh.shut{cursor:pointer;border-bottom:1px solid var(--line);margin-bottom:0;padding-bottom:9px}
+.ckh.shut b{font-size:14px;color:var(--ink2)}
+.ckh.shut em{color:var(--accent)}
+.ckh.shut:hover b{color:var(--ink)}
 .ck{display:flex;gap:11px;align-items:flex-start;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14.5px;line-height:1.4}
 .ck:hover{background:var(--surface2)}
 .ck input{margin:2px 0 0;width:17px;height:17px;accent-color:var(--accent);flex:none;cursor:pointer}
@@ -329,7 +336,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-24e";
+var BUILD = "2026-10-24f";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -341,7 +348,18 @@ var homeTab = localStorage.getItem(LSHOME)==="past" ? "past" : "now";
 var LSGRID="diff_posting_grid";
 var vGrid = localStorage.getItem(LSGRID)!=="0";
 var selPost = null;
-var checks = null, checksFor = null;
+var checks = null, checksFor = null, checksLoading = false;
+function ensureChecks(a){
+  if(checksFor===a || checksLoading) return;
+  checksLoading = true;
+  rpc("posting_checklist",{p_code:code,p_artist:a}).then(function(r){
+    checks=r||[]; checksFor=a; checksLoading=false; render();
+  }).catch(function(){ checksLoading=false; });
+}
+function checkCount(a){
+  if(checksFor!==a || !checks) return null;
+  return { done: checks.filter(function(c){return c.done;}).length, total: checks.length };
+}
 var dayIdx = 0;
 function narrow(){ return !!(window.matchMedia && window.matchMedia("(max-width:640px)").matches); }
 var LSOPEN="diff_posting_open";
@@ -551,6 +569,9 @@ function campaignBar(a){
     '<span class="mono" style="font-size:10.5px;color:var(--ink3)">'+q+' of '+live.length+' slots queued'+
       (all&&st==="planned"?' \u00b7 all of them':'')+'</span>'+
     '<span style="margin-left:auto"></span>'+
+    (function(){ var n=checkCount(a);
+      return (n&&n.total&&n.done===n.total)
+        ? '<a class="btn" href="#/create/artist/'+encodeURIComponent(a)+'/checklist">Checklist \u2713</a>' : ''; })()+
     '<button class="btn cst'+(st==="scheduled"?" on":"")+'" data-st="'+(st==="scheduled"?"planned":"scheduled")+'">'+
       (st==="scheduled"?"Scheduled \u2713":"Mark campaign scheduled")+'</button>'+
     '<button class="btn cst'+(st==="complete"?" on":"")+'" data-st="'+(st==="complete"?"scheduled":"complete")+'">'+
@@ -840,7 +861,8 @@ function wireClipRows(){
 
 /* ---------- ARTIST ---------- */
 function artistView(){
-  var a=vArtist, r=rel(a), ps=postsOf(a), cs=clipsOf(a);
+  var a=vArtist; ensureChecks(a);
+  var _x=vArtist, r=rel(a), ps=postsOf(a), cs=clipsOf(a);
   var q=ps.filter(function(p){return p.status==="queued";}).length;
   var sub=[];
   if(r.episode_no) sub.push("Ep. "+r.episode_no);
@@ -854,17 +876,15 @@ function artistView(){
     '<div class="tabs">'+
       '<button onclick="go(\'board\')" class="'+(vTab==="board"?"on":"")+'">Board</button>'+
       '<button onclick="go(\'clips\')" class="'+(vTab==="clips"?"on":"")+'">Clips</button>'+
-      '<button onclick="go(\'checklist\')" class="'+(vTab==="checklist"?"on":"")+'">Checklist</button>'+
+      (function(){ var n=checkCount(a);
+        if(n && n.total && n.done===n.total && vTab!=="checklist") return "";
+        return '<button onclick="go(\'checklist\')" class="'+(vTab==="checklist"?"on":"")+'">Checklist'+
+               (n&&n.total?' <i>'+n.done+'/'+n.total+'</i>':'')+'</button>'; })()+
     '</div>'+campaignBar(a);
   return h + (vTab==="board" ? boardView(a) : (vTab==="checklist" ? checklistView(a) : clipsView(a)));
 }
 function checklistView(a){
-  if(checksFor!==a || !checks){
-    rpc("posting_checklist",{p_code:code,p_artist:a}).then(function(r){
-      checks=r||[]; checksFor=a; render();
-    }).catch(function(){ toast("couldn\u2019t load the checklist"); });
-    return '<p class="empty">Loading\u2026</p>';
-  }
+  if(checksFor!==a || !checks){ ensureChecks(a); return '<p class="empty">Loading\u2026</p>'; }
   var P={p1:{t:"Phase 1 \u00b7 Sun to Wed", s:"The performance stage \u2014 introducing the sound"},
          p2:{t:"Phase 2 \u00b7 Wed to Sun", s:"The interview stage \u2014 the one fans invest in"}};
   var h='';
@@ -872,8 +892,11 @@ function checklistView(a){
     var rows=checks.filter(function(c){return c.phase===ph;});
     if(!rows.length) return;
     var d=rows.filter(function(c){return c.done;}).length;
-    h+='<div class="ckh"><div><b>'+esc(P[ph].t)+'</b><span>'+esc(P[ph].s)+'</span></div>'+
-       '<em class="'+(d===rows.length?"all":"")+'">'+d+' / '+rows.length+'</em></div>';
+    var full = d===rows.length, shut = full && !openN["ck:"+a+":"+ph];
+    h+='<div class="ckh'+(full?" all":"")+(shut?" shut":"")+'" data-ck="'+esc("ck:"+a+":"+ph)+'">'+
+       '<div><b>'+esc(P[ph].t)+'</b>'+(shut?'':'<span>'+esc(P[ph].s)+'</span>')+'</div>'+
+       '<em class="'+(full?"all":"")+'">'+(shut?'\u2713 done':d+' / '+rows.length)+'</em></div>';
+    if(shut) return;
     rows.forEach(function(c){
       h+='<label class="ck'+(c.done?" on":"")+'">'+
          '<input type="checkbox" class="ckb" data-id="'+c.id+'"'+(c.done?" checked":"")+'>'+
@@ -883,6 +906,9 @@ function checklistView(a){
   return h;
 }
 function wireChecklist(){
+  document.querySelectorAll("[data-ck]").forEach(function(el){
+    el.onclick=function(){ var k=el.dataset.ck; openN[k]=!openN[k]; saveOpen(); render(); };
+  });
   document.querySelectorAll("input.ckb").forEach(function(el){
     el.onchange=function(){
       var want=el.checked;
