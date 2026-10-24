@@ -316,7 +316,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-24a";
+var BUILD = "2026-10-24b";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -351,16 +351,32 @@ function clipUrl(c){ if(!c) return null;
   if(c.dropbox_path) return "https://www.dropbox.com/preview"+encodeURI(c.dropbox_path);
   return null; }
 var SRC={interview:"Interview",performance:"Performance",guest_mix:"Guest mix",station:"Station",other:"Other"};
-var PLAT={youtube:"YouTube",tiktok:"TikTok",instagram:"Instagram"};
+var PLAT={youtube:"YouTube",tiktok:"TikTok",instagram:"Instagram",spotify:"Spotify"};
 var DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 var MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+/* Agreed times, 24 Oct.
+   Instagram 12:00 every day — against peak, but the field is quieter there and it
+   leaves the whole day to push before the evening.
+   Long form and Spotify 07:00. Evergreen YouTube short 12:00.
+   Campaign YouTube short 19:00 Mon-Fri, 17:00 Sat, 19:30 Sun (on trial).
+   TikTok 20:00 every day. */
+function ytCampaign(dayIso){
+  var p=String(dayIso).split("-");
+  var k=new Date(+p[0],+p[1]-1,+p[2]).getDay();   // 0 Sun ... 6 Sat
+  return k===0 ? "19:30" : (k===6 ? "17:00" : "19:00");
+}
 var SHAPES = {
-  mix:     {label:"Launch \u00b7 mix",       slots:[["09:00","youtube"],["12:00","instagram"],["19:00","youtube"],["20:00","tiktok"]]},
-  hoc:     {label:"Launch \u00b7 interview", slots:[["09:00","youtube"],["12:00","instagram"],["19:00","youtube"],["20:00","tiktok"]]},
-  shorts:  {label:"Shorts only",            slots:[["19:00","youtube"],["20:00","tiktok"]]},
-  reel:    {label:"Shorts + reel",          slots:[["12:00","instagram"],["19:00","youtube"],["20:00","tiktok"]]}
+  mix:    {label:"Launch \u00b7 mix",       build:function(d){ return [
+            ["07:00","youtube"],["12:00","instagram"],["12:00","youtube"],
+            [ytCampaign(d),"youtube"],["20:00","tiktok"]]; }},
+  hoc:    {label:"Launch \u00b7 interview", build:function(d){ return [
+            ["07:00","youtube"],["07:00","spotify"],["12:00","instagram"],["12:00","youtube"],
+            [ytCampaign(d),"youtube"],["20:00","tiktok"]]; }},
+  shorts: {label:"Shorts only",             build:function(d){ return [
+            ["12:00","youtube"],[ytCampaign(d),"youtube"],["20:00","tiktok"]]; }},
+  reel:   {label:"Shorts + reel",           build:function(d){ return [
+            ["12:00","instagram"],["12:00","youtube"],[ytCampaign(d),"youtube"],["20:00","tiktok"]]; }}
 };
-var STD = SHAPES.shorts.slots;
 
 var tEl=document.getElementById("toast"), tT=null;
 function toast(m){ tEl.textContent=m; tEl.classList.add("show");
@@ -808,8 +824,8 @@ function boardView(a){
        keys.length+' day'+(keys.length===1?"":"s")+' \u00b7 '+ps.length+' slots</span></div>';
   } else {
     h+='<div class="setup"><p>Nothing on the board for '+esc(a)+' yet. '+
-       'A standard day is YouTube 09:00, Instagram 12:00, YouTube 17:00, TikTok 18:00 and TikTok 20:00 \u2014 '+
-       'change any time on the card.</p><div class="bar" style="margin:0">';
+       'Launch days carry the long form at 07:00; every day carries an evergreen Short at 12:00, '+
+       'the campaign Short in the evening and TikTok at 20:00. Change any time on the card.</p><div class="bar" style="margin:0">';
     if(r.perf_date)      h+='<button class="btn on mkday" data-d="'+r.perf_date+'" data-s="mix">Set up '+esc(fmtDay(r.perf_date))+'</button>';
     if(r.interview_date) h+='<button class="btn on mkday" data-d="'+r.interview_date+'" data-s="hoc">Set up '+esc(fmtDay(r.interview_date))+'</button>';
     h+='</div></div>';
@@ -997,7 +1013,7 @@ function addSlots(dayIso,specs){
 }
 function wireBoard(){
   document.querySelectorAll(".mkday").forEach(function(b){
-    b.onclick=function(){ addSlots(b.dataset.d, SHAPES[b.dataset.s||"shorts"].slots); };
+    b.onclick=function(){ addSlots(b.dataset.d, SHAPES[b.dataset.s||"shorts"].build(b.dataset.d)); };
   });
   document.querySelectorAll(".addOne").forEach(function(b){
     b.onclick=function(){ addSlots(b.dataset.d,[["12:00","instagram"]]); };
@@ -1006,12 +1022,12 @@ function wireBoard(){
     b.onclick=function(){
       var d=b.dataset.d;
       if(d==="__new__"){ var nd=document.getElementById("newDay"); if(!nd||!nd.value) return; d=nd.value; }
-      addSlots(d, SHAPES[b.dataset.s].slots);
+      addSlots(d, SHAPES[b.dataset.s].build(d));
     };
   });
   var nd=document.getElementById("newDay");
   var ns=document.getElementById("newSlot");
-  if(ns) ns.onclick=function(){ if(nd&&nd.value) addSlots(nd.value,[["19:00","youtube"]]); };
+  if(ns) ns.onclick=function(){ if(nd&&nd.value) addSlots(nd.value,[[ytCampaign(nd.value),"youtube"]]); };
 
   var vg=document.getElementById("vG"), vc=document.getElementById("vC");
   if(vg) vg.onclick=function(){ vGrid=true;  localStorage.setItem(LSGRID,"1"); render(); };
