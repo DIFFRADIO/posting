@@ -969,6 +969,7 @@ function boardView(a){
   if(keys.length){
     h+='<div class="bar"><button class="btn'+(vGrid?" on":"")+'" id="vG">Grid</button>'+
        '<button class="btn'+(vGrid?"":" on")+'" id="vC">Cards</button>'+
+       '<button class="btn" id="fillAll" title="Put a clip in every empty slot that has one available">Fill the clips</button>'+
        '<span class="sp mono" style="font-size:10.5px;color:var(--ink3)">'+
        keys.length+' day'+(keys.length===1?"":"s")+' \u00b7 '+ps.length+' slots</span></div>';
   } else {
@@ -1132,7 +1133,8 @@ function chk(cls,label,val){
 function saveSlot(el,reload){
   var cur=posts.filter(function(p){return p.id===el.dataset.p;})[0];
   var day=dayIsoOf(cur.scheduled_for)||todayIso();
-  var sel=el.querySelector(".cl").value;
+  var clEl=el.querySelector(".cl");
+  var sel = clEl ? clEl.value : "";
   function v(c){ var e=el.querySelector("."+c); return e?e.value:null; }
   function b(c){ var e=el.querySelector("."+c); return e? (e.dataset.v==="1") : null; }
   var d={ clip_id:sel||null,
@@ -1179,6 +1181,17 @@ function wireBoard(){
   var ns=document.getElementById("newSlot");
   if(ns) ns.onclick=function(){ if(nd&&nd.value) addSlots(nd.value,[[ytCampaign(nd.value),"youtube"]]); };
 
+  var fa=document.getElementById("fillAll");
+  if(fa) fa.onclick=function(){
+    fa.disabled=true; fa.textContent="Filling\u2026";
+    rpc("posting_autofill",{p_code:code,p_artist:vArtist}).then(function(r){
+      var x=(r&&r[0])||{filled:0};
+      return refresh().then(function(){
+        render();
+        toast(x.filled ? x.filled+" slots filled" : "nothing left to fill");
+      });
+    }).catch(function(){ fa.disabled=false; fa.textContent="Fill the clips"; toast("fill failed"); });
+  };
   var vg=document.getElementById("vG"), vc=document.getElementById("vC");
   if(vg) vg.onclick=function(){ vGrid=true;  localStorage.setItem(LSGRID,"1"); render(); };
   if(vc) vc.onclick=function(){ vGrid=false; localStorage.setItem(LSGRID,"0"); render(); };
@@ -1193,7 +1206,8 @@ function wireBoard(){
     b.onclick=function(){ var q=b.dataset.add.split("|"); addSlots(q[0],[[q[1],q[2]]]); };
   });
   document.querySelectorAll(".slot").forEach(function(el){
-    el.querySelector(".cl").onchange=function(){ saveSlot(el,true); };
+    var clSel=el.querySelector(".cl");
+    if(clSel) clSel.onchange=function(){ saveSlot(el,true); };
     el.querySelector(".pl").onchange=function(){ saveSlot(el,true); };
     el.querySelector(".t").onchange =function(){ saveSlot(el,true); };
     el.querySelector(".ti").onblur  =function(){ saveSlot(el,false); };
