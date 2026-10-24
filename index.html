@@ -235,6 +235,14 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .tag.st-pool{color:var(--ink3)}
 .cbar.cs-pool b{color:var(--ink3)}
 @media(max-width:640px){.cbar{padding:8px 10px;gap:7px}.cbar .btn{font-size:9.5px;padding:5px 8px}}
+.ovl{position:fixed;inset:0;background:rgba(26,21,18,.45);display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px;z-index:20;overflow:auto}
+.ovlc{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);max-width:560px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+.ovlh{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--ink)}
+.ovlh b{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--accent)}
+.ovlh .btn{margin-left:auto}
+.ovlb{padding:4px 16px 16px}
+.ovlb .ckh{margin-top:14px}
+@media(max-width:640px){.ovl{padding:4vh 10px}}
 .ckh{display:flex;align-items:baseline;gap:12px;margin:24px 0 2px;padding-bottom:7px;border-bottom:1px solid var(--ink)}
 .ckh b{font-family:'Sora',sans-serif;font-weight:600;font-size:16px;display:block}
 .ckh span{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--ink3);display:block;margin-top:2px}
@@ -336,7 +344,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-24f";
+var BUILD = "2026-10-24g";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -349,16 +357,28 @@ var LSGRID="diff_posting_grid";
 var vGrid = localStorage.getItem(LSGRID)!=="0";
 var selPost = null;
 var checks = null, checksFor = null, checksLoading = false;
+var cardOpen = null;                      /* the flashcard showing over the board */
 function ensureChecks(a){
   if(checksFor===a || checksLoading) return;
   checksLoading = true;
-  rpc("posting_checklist",{p_code:code,p_artist:a}).then(function(r){
+  rpc("posting_assets",{p_code:code,p_artist:a}).then(function(r){
     checks=r||[]; checksFor=a; checksLoading=false; render();
   }).catch(function(){ checksLoading=false; });
 }
-function checkCount(a){
+function checkCount(a, card){
   if(checksFor!==a || !checks) return null;
-  return { done: checks.filter(function(c){return c.done;}).length, total: checks.length };
+  var rows = card ? checks.filter(function(c){return c.card===card;}) : checks;
+  if(!rows.length) return null;
+  return { done: rows.filter(function(c){return c.done;}).length, total: rows.length };
+}
+/* which card a slot needs - derived, never chosen */
+function cardFor(p){
+  var perf = (p.source==="guest_mix" || p.source==="performance");
+  if(p.platform==="spotify") return "spotify";
+  var t = hhmm(p.scheduled_for);
+  if(p.platform==="instagram") return perf ? "gm_long" : "hoc_long";
+  if(p.platform==="youtube" && t < "09:00") return perf ? "gm_long" : "hoc_long";
+  return perf ? "perf_short" : "hoc_short";
 }
 var dayIdx = 0;
 function narrow(){ return !!(window.matchMedia && window.matchMedia("(max-width:640px)").matches); }
@@ -571,7 +591,7 @@ function campaignBar(a){
     '<span style="margin-left:auto"></span>'+
     (function(){ var n=checkCount(a);
       return (n&&n.total&&n.done===n.total)
-        ? '<a class="btn" href="#/create/artist/'+encodeURIComponent(a)+'/checklist">Checklist \u2713</a>' : ''; })()+
+        ? '<a class="btn" href="#/create/artist/'+encodeURIComponent(a)+'/checklist">Assets \u2713</a>' : ''; })()+
     '<button class="btn cst'+(st==="scheduled"?" on":"")+'" data-st="'+(st==="scheduled"?"planned":"scheduled")+'">'+
       (st==="scheduled"?"Scheduled \u2713":"Mark campaign scheduled")+'</button>'+
     '<button class="btn cst'+(st==="complete"?" on":"")+'" data-st="'+(st==="complete"?"scheduled":"complete")+'">'+
@@ -616,7 +636,7 @@ function render(){
   };
   if(view==="choose") return;
   if(view==="home") wireTree();
-  if(view==="artist"){ wireCampaign(vArtist); if(vTab==="board") wireBoard(); else if(vTab==="checklist") wireChecklist(); else wireClips(); }
+  if(view==="artist"){ wireCampaign(vArtist); if(vTab==="board"){ wireBoard(); wireChecklist(); } else if(vTab==="checklist") wireChecklist(); else { wireClips(); wireChecklist(); } }
 }
 function mast(eyebrow,title,tallyNum,tallyLabel){
   return '<header class="mast"><div><p class="eyebrow">'+esc(eyebrow)+'</p><h1>'+esc(title)+'</h1></div>'+
@@ -878,41 +898,58 @@ function artistView(){
       '<button onclick="go(\'clips\')" class="'+(vTab==="clips"?"on":"")+'">Clips</button>'+
       (function(){ var n=checkCount(a);
         if(n && n.total && n.done===n.total && vTab!=="checklist") return "";
-        return '<button onclick="go(\'checklist\')" class="'+(vTab==="checklist"?"on":"")+'">Checklist'+
+        return '<button onclick="go(\'checklist\')" class="'+(vTab==="checklist"?"on":"")+'">Assets'+
                (n&&n.total?' <i>'+n.done+'/'+n.total+'</i>':'')+'</button>'; })()+
     '</div>'+campaignBar(a);
-  return h + (vTab==="board" ? boardView(a) : (vTab==="checklist" ? checklistView(a) : clipsView(a)));
+  return h + cardOverlay(a) + (vTab==="board" ? boardView(a) : (vTab==="checklist" ? assetsView(a) : clipsView(a)));
 }
-function checklistView(a){
+function assetsView(a){
   if(checksFor!==a || !checks){ ensureChecks(a); return '<p class="empty">Loading\u2026</p>'; }
-  var P={p1:{t:"Phase 1 \u00b7 Sun to Wed", s:"The performance stage \u2014 introducing the sound"},
-         p2:{t:"Phase 2 \u00b7 Wed to Sun", s:"The interview stage \u2014 the one fans invest in"}};
-  var h='';
-  ["p1","p2"].forEach(function(ph){
-    var rows=checks.filter(function(c){return c.phase===ph;});
-    if(!rows.length) return;
-    var d=rows.filter(function(c){return c.done;}).length;
-    var full = d===rows.length, shut = full && !openN["ck:"+a+":"+ph];
-    h+='<div class="ckh'+(full?" all":"")+(shut?" shut":"")+'" data-ck="'+esc("ck:"+a+":"+ph)+'">'+
-       '<div><b>'+esc(P[ph].t)+'</b>'+(shut?'':'<span>'+esc(P[ph].s)+'</span>')+'</div>'+
-       '<em class="'+(full?"all":"")+'">'+(shut?'\u2713 done':d+' / '+rows.length)+'</em></div>';
-    if(shut) return;
-    rows.forEach(function(c){
-      h+='<label class="ck'+(c.done?" on":"")+'">'+
-         '<input type="checkbox" class="ckb" data-id="'+c.id+'"'+(c.done?" checked":"")+'>'+
-         '<span>'+esc(c.label)+'</span></label>';
-    });
+  var cards=[], seen={};
+  checks.forEach(function(c){ if(!seen[c.card]){ seen[c.card]=1; cards.push({card:c.card,label:c.card_label}); } });
+  var h='<p class="muted" style="margin:14px 0 0">What has to exist before any of it can go out. '+
+        'Ticks are shared across every slot of that kind \u2014 tick a title once, not five times.</p>';
+  cards.forEach(function(k){ h += cardHtml(a, k.card, k.label, false); });
+  return h;
+}
+function cardHtml(a, card, label, overlay){
+  var rows = checks.filter(function(c){ return c.card===card; });
+  if(!rows.length) return "";
+  var d = rows.filter(function(c){return c.done;}).length, full = d===rows.length;
+  var key = "ck:"+a+":"+card, shut = full && !openN[key] && !overlay;
+  var h='<div class="ckh'+(full?" all":"")+(shut?" shut":"")+'" data-ck="'+esc(key)+'">'+
+        '<div><b>'+esc(label)+'</b></div>'+
+        '<em class="'+(full?"all":"")+'">'+(shut?"\u2713 done":d+" / "+rows.length)+'</em></div>';
+  if(shut) return h;
+  rows.forEach(function(c){
+    h+='<label class="ck'+(c.done?" on":"")+'">'+
+       '<input type="checkbox" class="ckb" data-id="'+c.id+'"'+(c.done?" checked":"")+'>'+
+       '<span>'+esc(c.label)+'</span></label>';
   });
   return h;
 }
+function cardOverlay(a){
+  if(!cardOpen || checksFor!==a || !checks) return "";
+  var row = checks.filter(function(c){return c.card===cardOpen;})[0];
+  if(!row) return "";
+  return '<div class="ovl" id="ovlBack"><div class="ovlc">'+
+    '<div class="ovlh"><b>Assets needed</b><button class="btn" id="ovlX">Close</button></div>'+
+    '<div class="ovlb">'+cardHtml(a, cardOpen, row.card_label, true)+'</div></div></div>';
+}
 function wireChecklist(){
+  var ob=document.getElementById("ovlBack"), ox=document.getElementById("ovlX");
+  if(ox) ox.onclick=function(){ cardOpen=null; render(); };
+  if(ob) ob.onclick=function(e){ if(e.target===ob){ cardOpen=null; render(); } };
+  document.querySelectorAll(".openCard").forEach(function(b){
+    b.onclick=function(e){ e.preventDefault(); cardOpen=b.dataset.card; render(); };
+  });
   document.querySelectorAll("[data-ck]").forEach(function(el){
     el.onclick=function(){ var k=el.dataset.ck; openN[k]=!openN[k]; saveOpen(); render(); };
   });
   document.querySelectorAll("input.ckb").forEach(function(el){
     el.onchange=function(){
       var want=el.checked;
-      rpc("posting_set_check",{p_code:code,p_id:el.dataset.id,p_done:want}).then(function(){
+      rpc("posting_set_asset",{p_code:code,p_id:el.dataset.id,p_done:want}).then(function(){
         var c=checks.filter(function(x){return x.id===el.dataset.id;})[0];
         if(c) c.done=want;
         render();
@@ -1052,6 +1089,7 @@ function slotCard(p){
       (b?'<span class="band '+b.k+'">'+b.t+'</span>':'<span class="band">no length</span>')+
       '<span class="sp" style="margin-left:auto"></span>'+
       (url?'<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Clip</a>':'')+
+      '<button class="btn openCard" data-card="'+cardFor(p)+'" title="What this one needs">Assets</button>'+
       '<button class="btn st'+(p.status==="queued"?" on":"")+'">'+(p.status==="queued"?"Queued":"Mark queued")+'</button>'+
       '<select class="stx" style="width:98px">'+
         ["planned","queued","held","skipped","failed"].map(function(s){
