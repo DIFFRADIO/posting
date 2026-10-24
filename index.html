@@ -316,7 +316,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-23a";
+var BUILD = "2026-10-24a";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -354,7 +354,13 @@ var SRC={interview:"Interview",performance:"Performance",guest_mix:"Guest mix",s
 var PLAT={youtube:"YouTube",tiktok:"TikTok",instagram:"Instagram"};
 var DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 var MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-var STD=[["09:00","youtube"],["12:00","instagram"],["17:00","youtube"],["18:00","tiktok"],["20:00","tiktok"]];
+var SHAPES = {
+  mix:     {label:"Launch \u00b7 mix",       slots:[["09:00","youtube"],["12:00","instagram"],["19:00","youtube"],["20:00","tiktok"]]},
+  hoc:     {label:"Launch \u00b7 interview", slots:[["09:00","youtube"],["12:00","instagram"],["19:00","youtube"],["20:00","tiktok"]]},
+  shorts:  {label:"Shorts only",            slots:[["19:00","youtube"],["20:00","tiktok"]]},
+  reel:    {label:"Shorts + reel",          slots:[["12:00","instagram"],["19:00","youtube"],["20:00","tiktok"]]}
+};
+var STD = SHAPES.shorts.slots;
 
 var tEl=document.getElementById("toast"), tT=null;
 function toast(m){ tEl.textContent=m; tEl.classList.add("show");
@@ -719,6 +725,7 @@ function clipRow(c,i,lvl){
     '<div class="dur"><input class="d" data-id="'+c.id+'" type="number" min="1" max="600" value="'+(c.duration_seconds||"")+'" inputmode="numeric"><em class="mono" style="font-size:11px;color:var(--ink3);font-style:normal">s</em></div>'+
     '<div class="act">'+(b?'<span class="band '+b.k+'">'+b.t+'</span>':'<span class="band">—</span>')+
       (url?'<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Clip</a>':'')+
+      '<button class="btn ev'+(c.is_evergreen?" on":"")+'" data-id="'+c.id+'" data-v="'+(c.is_evergreen?"false":"true")+'" title="No dates in the copy, so it can run any week">Evergreen</button>'+
       '<button class="btn r'+(c.retired?" on":"")+'" data-id="'+c.id+'" data-r="'+(c.retired?"0":"1")+'">'+
         (c.retired?"Retired":"Retire")+'</button></div></div>';
 }
@@ -734,6 +741,19 @@ function wireClipRows(){
         var t=document.getElementById("tree");
         if(t){ t.innerHTML=treeHtml(); bindTree(); } else render();
       }).catch(function(){ toast("save failed"); });
+    };
+  });
+  document.querySelectorAll("button.ev").forEach(function(el){
+    el.onclick=function(ev){
+      ev.stopPropagation();
+      var want = el.dataset.v==="true";
+      rpc("posting_set_clip_text",{p_code:code,p_clip:el.dataset.id,p_field:"is_evergreen",p_value:el.dataset.v})
+        .then(function(){
+          var c=clips.filter(function(x){return x.id===el.dataset.id;})[0];
+          if(c) c.is_evergreen=want;
+          var t=document.getElementById("tree");
+          if(t){ t.innerHTML=treeHtml(); bindTree(); } else render();
+        }).catch(function(){ toast("save failed"); });
     };
   });
   document.querySelectorAll("button.r").forEach(function(el){
@@ -790,8 +810,8 @@ function boardView(a){
     h+='<div class="setup"><p>Nothing on the board for '+esc(a)+' yet. '+
        'A standard day is YouTube 09:00, Instagram 12:00, YouTube 17:00, TikTok 18:00 and TikTok 20:00 \u2014 '+
        'change any time on the card.</p><div class="bar" style="margin:0">';
-    if(r.perf_date)      h+='<button class="btn on mkday" data-d="'+r.perf_date+'">Set up '+esc(fmtDay(r.perf_date))+'</button>';
-    if(r.interview_date) h+='<button class="btn on mkday" data-d="'+r.interview_date+'">Set up '+esc(fmtDay(r.interview_date))+'</button>';
+    if(r.perf_date)      h+='<button class="btn on mkday" data-d="'+r.perf_date+'" data-s="mix">Set up '+esc(fmtDay(r.perf_date))+'</button>';
+    if(r.interview_date) h+='<button class="btn on mkday" data-d="'+r.interview_date+'" data-s="hoc">Set up '+esc(fmtDay(r.interview_date))+'</button>';
     h+='</div></div>';
   }
 
@@ -802,7 +822,7 @@ function boardView(a){
     h+='<div class="day"><div class="dayhd"><b>'+esc(d==="unscheduled"?"No date":fmtDay(d))+'</b>'+
        '<em>'+dq+' of '+day.length+' queued</em><span class="sp"></span>'+
        '<button class="btn addOne" data-d="'+esc(d)+'">+ Slot</button>'+
-       '<button class="btn addDay" data-d="'+esc(d)+'">+ Standard day</button></div>';
+       shapeBtns(d)+'</div>';
     day.forEach(function(p){ h+=slotCard(p); });
     h+='</div>';
   });
@@ -811,7 +831,7 @@ function boardView(a){
      '<div class="bar" style="margin:0"><input type="date" id="newDay" value="'+
      esc(r.interview_date||r.perf_date||todayIso())+'">'+
      '<button class="btn" id="newSlot">+ One slot</button>'+
-     '<button class="btn on" id="newStd">+ Standard day</button></div></div>';
+     '<span class="sh" data-new="1">'+shapeBtns("__new__")+'</span></div></div>';
   return h;
 }
 
@@ -868,6 +888,11 @@ function gridView(a,days,keys){
   var cur=ps.filter(function(p){return p.id===selPost;})[0];
   if(cur) h+='<div class="gsel">'+slotCard(cur)+'</div>';
   return h;
+}
+function shapeBtns(d){
+  return Object.keys(SHAPES).map(function(k){
+    return '<button class="btn shp" data-d="'+esc(d)+'" data-s="'+k+'">+ '+esc(SHAPES[k].label)+'</button>';
+  }).join("");
 }
 function clipOptions(a,sel){
   var byS={};
@@ -972,18 +997,21 @@ function addSlots(dayIso,specs){
 }
 function wireBoard(){
   document.querySelectorAll(".mkday").forEach(function(b){
-    b.onclick=function(){ addSlots(b.dataset.d, STD); };
+    b.onclick=function(){ addSlots(b.dataset.d, SHAPES[b.dataset.s||"shorts"].slots); };
   });
   document.querySelectorAll(".addOne").forEach(function(b){
     b.onclick=function(){ addSlots(b.dataset.d,[["12:00","instagram"]]); };
   });
-  document.querySelectorAll(".addDay").forEach(function(b){
-    b.onclick=function(){ addSlots(b.dataset.d, STD); };
+  document.querySelectorAll(".shp").forEach(function(b){
+    b.onclick=function(){
+      var d=b.dataset.d;
+      if(d==="__new__"){ var nd=document.getElementById("newDay"); if(!nd||!nd.value) return; d=nd.value; }
+      addSlots(d, SHAPES[b.dataset.s].slots);
+    };
   });
   var nd=document.getElementById("newDay");
-  var ns=document.getElementById("newSlot"), nx=document.getElementById("newStd");
-  if(ns) ns.onclick=function(){ if(nd.value) addSlots(nd.value,[["12:00","instagram"]]); };
-  if(nx) nx.onclick=function(){ if(nd.value) addSlots(nd.value, STD); };
+  var ns=document.getElementById("newSlot");
+  if(ns) ns.onclick=function(){ if(nd&&nd.value) addSlots(nd.value,[["19:00","youtube"]]); };
 
   var vg=document.getElementById("vG"), vc=document.getElementById("vC");
   if(vg) vg.onclick=function(){ vGrid=true;  localStorage.setItem(LSGRID,"1"); render(); };
