@@ -320,13 +320,15 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-24c";
+var BUILD = "2026-10-24d";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
 var REDIRECT = location.origin + location.pathname;
 var side=null, view="choose", vArtist=null, vTab="board";
 var fBand="", fSource="", fUnused=false;
+var LSHOME="diff_posting_home";
+var homeTab = localStorage.getItem(LSHOME)==="past" ? "past" : "now";
 var LSGRID="diff_posting_grid";
 var vGrid = localStorage.getItem(LSGRID)!=="0";
 var selPost = null;
@@ -497,6 +499,29 @@ function upNext(){
   rows.sort(function(x,y){ return x.d<y.d?-1:1; });
   return rows.slice(0,2).map(function(x){return x.a;});
 }
+/* An artist is past once their last dated drop has been and gone.
+   No dates at all means they are here for the clip pool, which also lives in Past. */
+function lastDate(a){ var r=rel(a);
+  var d=[r.perf_date,r.interview_date].filter(Boolean).sort();
+  return d.length ? d[d.length-1] : null; }
+function nextDate(a){ var t=todayIso(), r=rel(a);
+  var d=[r.perf_date,r.interview_date].filter(Boolean).sort()
+        .filter(function(x){ return x>=t; });
+  return d.length ? d[0] : null; }
+function isPast(a){ var l=lastDate(a); return !l || l < todayIso(); }
+function sortedArtists(past){
+  return artists().filter(function(a){ return isPast(a)===past; })
+    .sort(function(x,y){
+      if(past){
+        var lx=lastDate(x)||"0000", ly=lastDate(y)||"0000";
+        if(lx!==ly) return ly<lx?-1:1;          /* most recent first */
+      } else {
+        var nx=nextDate(x)||"9999", ny=nextDate(y)||"9999";
+        if(nx!==ny) return nx<ny?-1:1;          /* soonest first */
+      }
+      return x.toLowerCase().localeCompare(y.toLowerCase());
+    });
+}
 function campaign(a){
   var r=rel(a), st=r.campaign_status||"planned";
   if(st==="complete")  return {k:"done", label:"Complete"};
@@ -536,9 +561,7 @@ function artists(){
   var s={}; clips.forEach(function(c){s[c.artist_name]=1;});
   releases.forEach(function(r){s[r.artist_name]=1;});
   posts.forEach(function(p){s[p.artist_name]=1;});
-  return Object.keys(s).sort(function(a,b){
-    return a.toLowerCase().localeCompare(b.toLowerCase());
-  });
+  return Object.keys(s);
 }
 function clipsOf(a){ return clips.filter(function(c){return c.artist_name===a;}); }
 function postsOf(a){ return posts.filter(function(p){return p.artist_name===a;}); }
@@ -624,14 +647,17 @@ function homeView(){
     '<div class="srch"><input id="q" type="search" autocomplete="off" spellcheck="false" '+
       'placeholder="Search artists, clips, titles…" value="'+esc(q)+'"></div>'+
     '<div class="tctl">'+
-      '<span class="mono" style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)">A\u2013Z</span>'+
+      '<button class="btn'+(homeTab==="now"?" on":"")+'" id="tabNow">Current</button>'+
+      '<button class="btn'+(homeTab==="past"?" on":"")+'" id="tabPast">Past</button>'+
+      '<span style="width:10px;display:inline-block"></span>'+
     '<button class="btn" id="expAll">Expand all</button>'+
       '<button class="btn" id="colAll">Collapse all</button>'+
       '<span class="sp"></span></div>'+
     '<div id="tree">'+treeHtml()+'</div>';
 }
 function treeHtml(){
-  var as=artists(), nx=nextOut(), out="", shown=0;
+  var as = q ? artists() : sortedArtists(homeTab==="past");
+  var nx=nextOut(), out="", shown=0;
   as.forEach(function(a){
     var f=sift(a); if(!f) return;
     shown++;
@@ -650,7 +676,10 @@ function treeHtml(){
       '<span class="open" data-go="'+esc(a)+'">Open</span></div>'+
       '<div class="kids'+(op?" op":"")+'">'+artistKids(a,f,qd)+'</div>';
   });
-  if(!shown) out='<p class="nores">Nothing matches “'+esc(q)+'”.</p>';
+  if(!shown) out = q
+    ? '<p class="nores">Nothing matches \u201c'+esc(q)+'\u201d.</p>'
+    : '<p class="nores">'+(homeTab==="past"?"No finished campaigns yet.":"Nothing coming up.")+'</p>';
+  if(q) out = '<p class="nores" style="padding:10px 6px 2px">Searching everything, current and past.</p>'+out;
   return '<div class="tree">'+out+'</div>';
 }
 function artistKids(a,f,qd){
@@ -710,9 +739,12 @@ function wireTree(){
       if(t){ t.innerHTML=treeHtml(); bindTree(); }
     };
   }
+  var tn=document.getElementById("tabNow"), tp=document.getElementById("tabPast");
+  if(tn) tn.onclick=function(){ homeTab="now";  localStorage.setItem(LSHOME,homeTab); render(); };
+  if(tp) tp.onclick=function(){ homeTab="past"; localStorage.setItem(LSHOME,homeTab); render(); };
   var e=document.getElementById("expAll"), c=document.getElementById("colAll");
   if(e) e.onclick=function(){
-    artists().forEach(function(a){
+    sortedArtists(homeTab==="past").forEach(function(a){
       openN["a:"+a]=true; openN["a:"+a+"/board"]=true;
       clipsOf(a).forEach(function(x){ openN["a:"+a+"/src/"+x.source]=true; });
       postsOf(a).forEach(function(p){ openN["a:"+a+"/board/"+(dayIsoOf(p.scheduled_for)||"unscheduled")]=true; });
