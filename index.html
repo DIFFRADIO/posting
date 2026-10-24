@@ -235,6 +235,15 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .tag.st-pool{color:var(--ink3)}
 .cbar.cs-pool b{color:var(--ink3)}
 @media(max-width:640px){.cbar{padding:8px 10px;gap:7px}.cbar .btn{font-size:9.5px;padding:5px 8px}}
+.ckh{display:flex;align-items:baseline;gap:12px;margin:24px 0 2px;padding-bottom:7px;border-bottom:1px solid var(--ink)}
+.ckh b{font-family:'Sora',sans-serif;font-weight:600;font-size:16px;display:block}
+.ckh span{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--ink3);display:block;margin-top:2px}
+.ckh em{margin-left:auto;font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.ckh em.all{color:var(--accent)}
+.ck{display:flex;gap:11px;align-items:flex-start;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14.5px;line-height:1.4}
+.ck:hover{background:var(--surface2)}
+.ck input{margin:2px 0 0;width:17px;height:17px;accent-color:var(--accent);flex:none;cursor:pointer}
+.ck.on span{color:var(--ink3);text-decoration:line-through;text-decoration-color:var(--accent-line)}
 .empty{color:var(--ink2);font-size:13.5px;padding:13px 2px;border-bottom:1px solid var(--line)}
 .setup{border:1px dashed var(--line);border-radius:var(--radius);padding:14px;margin:16px 0 0}
 .setup p{margin:0 0 10px;color:var(--ink2);font-size:13.5px}
@@ -320,7 +329,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-24d";
+var BUILD = "2026-10-24e";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -332,6 +341,7 @@ var homeTab = localStorage.getItem(LSHOME)==="past" ? "past" : "now";
 var LSGRID="diff_posting_grid";
 var vGrid = localStorage.getItem(LSGRID)!=="0";
 var selPost = null;
+var checks = null, checksFor = null;
 var dayIdx = 0;
 function narrow(){ return !!(window.matchMedia && window.matchMedia("(max-width:640px)").matches); }
 var LSOPEN="diff_posting_open";
@@ -585,7 +595,7 @@ function render(){
   };
   if(view==="choose") return;
   if(view==="home") wireTree();
-  if(view==="artist"){ wireCampaign(vArtist); if(vTab==="board") wireBoard(); else wireClips(); }
+  if(view==="artist"){ wireCampaign(vArtist); if(vTab==="board") wireBoard(); else if(vTab==="checklist") wireChecklist(); else wireClips(); }
 }
 function mast(eyebrow,title,tallyNum,tallyLabel){
   return '<header class="mast"><div><p class="eyebrow">'+esc(eyebrow)+'</p><h1>'+esc(title)+'</h1></div>'+
@@ -844,8 +854,45 @@ function artistView(){
     '<div class="tabs">'+
       '<button onclick="go(\'board\')" class="'+(vTab==="board"?"on":"")+'">Board</button>'+
       '<button onclick="go(\'clips\')" class="'+(vTab==="clips"?"on":"")+'">Clips</button>'+
+      '<button onclick="go(\'checklist\')" class="'+(vTab==="checklist"?"on":"")+'">Checklist</button>'+
     '</div>'+campaignBar(a);
-  return h + (vTab==="board" ? boardView(a) : clipsView(a));
+  return h + (vTab==="board" ? boardView(a) : (vTab==="checklist" ? checklistView(a) : clipsView(a)));
+}
+function checklistView(a){
+  if(checksFor!==a || !checks){
+    rpc("posting_checklist",{p_code:code,p_artist:a}).then(function(r){
+      checks=r||[]; checksFor=a; render();
+    }).catch(function(){ toast("couldn\u2019t load the checklist"); });
+    return '<p class="empty">Loading\u2026</p>';
+  }
+  var P={p1:{t:"Phase 1 \u00b7 Sun to Wed", s:"The performance stage \u2014 introducing the sound"},
+         p2:{t:"Phase 2 \u00b7 Wed to Sun", s:"The interview stage \u2014 the one fans invest in"}};
+  var h='';
+  ["p1","p2"].forEach(function(ph){
+    var rows=checks.filter(function(c){return c.phase===ph;});
+    if(!rows.length) return;
+    var d=rows.filter(function(c){return c.done;}).length;
+    h+='<div class="ckh"><div><b>'+esc(P[ph].t)+'</b><span>'+esc(P[ph].s)+'</span></div>'+
+       '<em class="'+(d===rows.length?"all":"")+'">'+d+' / '+rows.length+'</em></div>';
+    rows.forEach(function(c){
+      h+='<label class="ck'+(c.done?" on":"")+'">'+
+         '<input type="checkbox" class="ckb" data-id="'+c.id+'"'+(c.done?" checked":"")+'>'+
+         '<span>'+esc(c.label)+'</span></label>';
+    });
+  });
+  return h;
+}
+function wireChecklist(){
+  document.querySelectorAll("input.ckb").forEach(function(el){
+    el.onchange=function(){
+      var want=el.checked;
+      rpc("posting_set_check",{p_code:code,p_id:el.dataset.id,p_done:want}).then(function(){
+        var c=checks.filter(function(x){return x.id===el.dataset.id;})[0];
+        if(c) c.done=want;
+        render();
+      }).catch(function(){ toast("save failed"); el.checked=!want; });
+    };
+  });
 }
 function go(t){ location.hash="#/create/artist/"+encodeURIComponent(vArtist)+"/"+t; }
 
