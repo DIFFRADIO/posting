@@ -230,6 +230,10 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .cbar.cs-done b{color:var(--cs-done)} .cbar.cs-done .dotc{background:var(--cs-done)}
 .cbar.cs-done .btn.on{background:var(--cs-done);border-color:var(--cs-done);color:#fff}
 .cbar.cs-later b{color:var(--ink3)}
+.tn.a0.cs-pool{border-left-color:var(--line)}
+.tn.a0.cs-pool b{color:var(--ink2)}
+.tag.st-pool{color:var(--ink3)}
+.cbar.cs-pool b{color:var(--ink3)}
 @media(max-width:640px){.cbar{padding:8px 10px;gap:7px}.cbar .btn{font-size:9.5px;padding:5px 8px}}
 .empty{color:var(--ink2);font-size:13.5px;padding:13px 2px;border-bottom:1px solid var(--line)}
 .setup{border:1px dashed var(--line);border-radius:var(--radius);padding:14px;margin:16px 0 0}
@@ -316,7 +320,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-24b";
+var BUILD = "2026-10-24c";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -494,9 +498,12 @@ function upNext(){
   return rows.slice(0,2).map(function(x){return x.a;});
 }
 function campaign(a){
-  var st=(rel(a).campaign_status)||"planned";
+  var r=rel(a), st=r.campaign_status||"planned";
   if(st==="complete")  return {k:"done", label:"Complete"};
   if(st==="scheduled") return {k:"sched",label:"Scheduled"};
+  /* no dates and nothing scheduled: it is here for its clips, not a campaign */
+  if(!r.perf_date && !r.interview_date && !postsOf(a).length)
+    return {k:"pool", label:"Clip pool"};
   return upNext().indexOf(a)>=0 ? {k:"next", label:"Up next"} : {k:"later",label:"Later"};
 }
 function campaignBar(a){
