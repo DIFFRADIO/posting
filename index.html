@@ -386,7 +386,7 @@ function isLongFormSlot(p){
   return p.platform==="youtube" && hhmm(p.scheduled_for) < "09:00";
 }
 function longFormName(p){
-  if(p.source==="interview") return p.platform==="spotify" ? "Heart of Cardiff \u2014 audio" : "Heart of Cardiff episode";
+  if(p.source==="interview") return "Heart of Cardiff episode";
   if(p.source==="guest_mix") return "Guest mix";
   return "Live performance";
 }
