@@ -345,7 +345,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-25a";
+var BUILD = "2026-10-25b";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -416,6 +416,9 @@ function band(s){ if(!s) return null; s=+s;
   if(s<15) return {k:"",t:"under 15"};
   if(s<=25) return {k:"good",t:"15–25"};
   return {k:"",t:"over 25"}; }
+function assetUrl(p){
+  return p && p.asset_path ? "https://www.dropbox.com/preview"+encodeURI(p.asset_path) : null;
+}
 function clipUrl(c){ if(!c) return null;
   if(c.dropbox_url) return c.dropbox_url;
   if(c.dropbox_path) return "https://www.dropbox.com/preview"+encodeURI(c.dropbox_path);
@@ -1116,7 +1119,11 @@ function slotCard(p){
     (p.hold_reason?'<div class="why"><b>On hold</b>'+esc(p.hold_reason)+'</div>':'')+
     (p.notes?'<div class="why note"><b>Note</b>'+esc(p.notes)+'</div>':'')+
     (isLongFormSlot(p)
-      ? '<div class="fld"><label>Asset</label><div class="lfnote">'+esc(longFormName(p))+' \u2014 the full upload. No clip goes in this slot.</div></div>'
+      ? '<div class="fld"><label>Asset'+(p.asset_path?'<span class="sp"></span><a class="btn" href="'+esc(assetUrl(p))+'" target="_blank" rel="noopener">Dropbox</a>':'')+'</label>'+
+        '<div class="lfnote"><b>'+esc(longFormName(p))+'</b>'+
+        (p.asset_name?' \u00b7 <span class="mono">'+esc(p.asset_name)+'</span>':'')+
+        '<br>The full upload. No clip goes in this slot.'+
+        (p.asset_path?'':' <i>No Dropbox path stored yet.</i>')+'</div></div>'
       : '<div class="fld"><label>Clip</label><select class="cl">'+clipOptions(p.artist_name,p.clip_id)+'</select></div>')+
     '<div class="fld"><label>Title <i class="'+(tl>60?"over":"")+'">'+tl+'/60</i>'+
       '<span class="sp"></span><button class="btn cpT">Copy</button></label>'+
