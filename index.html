@@ -334,6 +334,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
   .tabs button{padding:9px 10px;font-size:10px}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.lfnote{padding:9px 11px;border:1px solid var(--line);border-radius:6px;color:var(--ink2);font-size:13px;background:var(--surface2)}
 </style>
 </head>
 <body>
@@ -344,7 +345,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-24g";
+var BUILD = "2026-10-25a";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -379,6 +380,21 @@ function cardFor(p){
   if(p.platform==="instagram") return perf ? "gm_long" : "hoc_long";
   if(p.platform==="youtube" && t < "09:00") return perf ? "gm_long" : "hoc_long";
   return perf ? "perf_short" : "hoc_short";
+}
+function isLongFormSlot(p){
+  if(p.platform==="spotify") return true;
+  return p.platform==="youtube" && hhmm(p.scheduled_for) < "09:00";
+}
+function longFormName(p){
+  if(p.source==="interview") return p.platform==="spotify" ? "Heart of Cardiff \u2014 audio" : "Heart of Cardiff episode";
+  if(p.source==="guest_mix") return "Guest mix";
+  return "Live performance";
+}
+function slotLabel(p){
+  if(p.title) return p.title;
+  if(p.display_name) return p.display_name;
+  if(isLongFormSlot(p)) return longFormName(p);
+  return "empty slot";
 }
 var dayIdx = 0;
 function narrow(){ return !!(window.matchMedia && window.matchMedia("(max-width:640px)").matches); }
@@ -759,7 +775,7 @@ function artistKids(a,f,qd){
       out+='<div class="slim" data-go="'+esc(a)+'">'+
         '<span class="tm">'+esc(hhmm(p.scheduled_for))+'</span>'+
         '<span class="pf">'+esc(PLAT[p.platform]||p.platform)+'</span>'+
-        '<span class="ttl'+(p.title?"":" none")+'">'+esc(p.title||p.display_name||"empty slot")+
+        '<span class="ttl'+(p.title?"":" none")+'">'+esc(slotLabel(p))+
           (p.title&&p.display_name?'<i>'+esc(p.display_name)+'.mp4</i>':'')+'</span>'+
         '<span class="pill'+(p.status==="queued"?" q":"")+'">'+esc(p.status)+'</span></div>';
     });
@@ -1040,10 +1056,10 @@ function gridView(a,days,keys){
       var b=band(p.duration_seconds);
       var cls='gc'+(p.status==="queued"?" ok":"")+(p.status==="skipped"||p.status==="held"?" dead":"")+(p.id===selPost?" sel":"");
       h+='<button class="gc '+cls.slice(3)+'" type="button" data-sel="'+p.id+'">'+
-         '<span class="cn">'+esc(p.title||p.display_name||"empty slot")+'</span>'+
+         '<span class="cn">'+esc(slotLabel(p))+'</span>'+
          (p.title&&p.display_name?'<span class="cf">'+esc(p.display_name)+'.mp4</span>':'')+
          '<span class="cs"><i class="dot"></i>'+
-           (p.duration_seconds? p.duration_seconds+"s" : "no length")+
+           (p.duration_seconds? p.duration_seconds+"s" : (isLongFormSlot(p)?"full upload":"no length"))+
            (b&&b.k==="good"?'<i class="pl good">in band</i>':(b?'<i class="pl">'+b.t+'</i>':''))+
            (p.status!=="planned"?'<i class="pl'+(p.status==="queued"?" good":"")+'">'+esc(p.status)+'</i>':'')+
          '</span></button>';
@@ -1087,7 +1103,7 @@ function slotCard(p){
       '<select class="pl" style="width:120px">'+
         Object.keys(PLAT).map(function(k){return '<option value="'+k+'"'+(p.platform===k?" selected":"")+'>'+PLAT[k]+'</option>';}).join("")+
       '</select>'+
-      (b?'<span class="band '+b.k+'">'+b.t+'</span>':'<span class="band">no length</span>')+
+      (b?'<span class="band '+b.k+'">'+b.t+'</span>':'<span class="band">'+(isLongFormSlot(p)?"long form":"no length")+'</span>')+
       '<span class="sp" style="margin-left:auto"></span>'+
       (url?'<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Clip</a>':'')+
       '<button class="btn openCard" data-card="'+cardFor(p)+'" title="What this one needs">Assets</button>'+
@@ -1099,7 +1115,9 @@ function slotCard(p){
     '</div>'+
     (p.hold_reason?'<div class="why"><b>On hold</b>'+esc(p.hold_reason)+'</div>':'')+
     (p.notes?'<div class="why note"><b>Note</b>'+esc(p.notes)+'</div>':'')+
-    '<div class="fld"><label>Clip</label><select class="cl">'+clipOptions(p.artist_name,p.clip_id)+'</select></div>'+
+    (isLongFormSlot(p)
+      ? '<div class="fld"><label>Asset</label><div class="lfnote">'+esc(longFormName(p))+' \u2014 the full upload. No clip goes in this slot.</div></div>'
+      : '<div class="fld"><label>Clip</label><select class="cl">'+clipOptions(p.artist_name,p.clip_id)+'</select></div>')+
     '<div class="fld"><label>Title <i class="'+(tl>60?"over":"")+'">'+tl+'/60</i>'+
       '<span class="sp"></span><button class="btn cpT">Copy</button></label>'+
       '<input class="ti" type="text" value="'+esc(p.title||"")+'" placeholder="the title as it goes in"></div>'+
