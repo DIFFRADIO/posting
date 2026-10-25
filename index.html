@@ -345,7 +345,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-25b";
+var BUILD = "2026-10-25c";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -536,7 +536,19 @@ function load(fromGate){
     app.innerHTML='<div class="wrap"><p class="muted">Couldn’t reach the database. Check your connection and reload.</p></div>';
   });
 }
-function refresh(){ return rpc("posting_posts",{p_code:code}).then(function(r){posts=r||[];}); }
+function refresh(){
+  return Promise.all([
+    rpc("posting_posts",{p_code:code}),
+    rpc("posting_assets",{p_code:code}).catch(function(){ return []; })
+  ]).then(function(r){
+    posts = r[0]||[];
+    var by={}; (r[1]||[]).forEach(function(a){ by[a.id]=a; });
+    posts.forEach(function(p){
+      var a=by[p.id];
+      if(a){ p.asset_path=a.asset_path; p.asset_name=a.asset_name; }
+    });
+  });
+}
 
 /* ---------- routing ---------- */
 function route(){
