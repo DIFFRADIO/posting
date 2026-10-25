@@ -345,7 +345,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-25c";
+var BUILD = "2026-10-25d";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -395,6 +395,18 @@ function slotLabel(p){
   if(p.display_name) return p.display_name;
   if(isLongFormSlot(p)) return longFormName(p);
   return "empty slot";
+}
+function slotRole(p){
+  if(isLongFormSlot(p)) return "1";
+  return hhmm(p.scheduled_for) < "13:00" ? "2" : "3";
+}
+var ROWORD={"1spotify":"1a","1youtube":"1b","2instagram":"2a","2youtube":"2b",
+            "3youtube":"3a","3tiktok":"3b"};
+function rowKey(role,plat){ return (ROWORD[role+plat]||role+"z")+"|"+role+"|"+plat; }
+function roleTime(role,plat,dayIso){
+  if(role==="1") return "07:00";
+  if(role==="2") return "12:00";
+  return plat==="tiktok" ? "20:00" : ytCampaign(dayIso);
 }
 var dayIdx = 0;
 function narrow(){ return !!(window.matchMedia && window.matchMedia("(max-width:640px)").matches); }
@@ -1037,8 +1049,9 @@ function gridView(a,days,keys){
   var ps=postsOf(a);
   var rowsMap={};
   ps.forEach(function(p){
-    var k=hhmm(p.scheduled_for)+"|"+p.platform;
-    rowsMap[k]=[hhmm(p.scheduled_for), p.platform];
+    var role=slotRole(p), k=rowKey(role,p.platform);
+    if(!rowsMap[k]) rowsMap[k]={role:role, plat:p.platform, times:{}};
+    rowsMap[k].times[hhmm(p.scheduled_for)]=1;
   });
   var rows=Object.keys(rowsMap).sort().map(function(k){return rowsMap[k];});
   if(!selPost || !ps.filter(function(p){return p.id===selPost;}).length)
@@ -1060,12 +1073,14 @@ function gridView(a,days,keys){
         '<div class="gh corner"></div>';
   cols.forEach(function(d){ h+='<div class="gh day">'+esc(d==="unscheduled"?"No date":fmtDay(d))+'</div>'; });
   rows.forEach(function(rw){
-    h+='<div class="gl"><b>'+esc(PLAT[rw[1]]||rw[1])+'</b><span>'+esc(rw[0])+'</span></div>';
+    var tlist=Object.keys(rw.times).sort().join(" \u00b7 ");
+    h+='<div class="gl"><b>'+esc(PLAT[rw.plat]||rw.plat)+'</b><span>'+esc(tlist)+'</span></div>';
     cols.forEach(function(d){
       var p=ps.filter(function(x){ return dayIsoOf(x.scheduled_for)===d &&
-        hhmm(x.scheduled_for)===rw[0] && x.platform===rw[1]; })[0];
+        slotRole(x)===rw.role && x.platform===rw.plat; })[0];
       if(!p){
-        h+='<button class="gc none" type="button" data-add="'+esc(d)+'|'+esc(rw[0])+'|'+esc(rw[1])+'">+</button>';
+        var at=roleTime(rw.role,rw.plat,d);
+        h+='<button class="gc none" type="button" data-add="'+esc(d)+'|'+esc(at)+'|'+esc(rw.plat)+'">+</button>';
         return;
       }
       var b=band(p.duration_seconds);
