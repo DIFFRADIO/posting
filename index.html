@@ -171,6 +171,10 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .pnav i{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink3);font-style:normal}
 .pnav .pbt{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--radius);width:30px;height:28px;font-size:17px;line-height:1;cursor:pointer}
 .pnav .pbt:hover{background:var(--surface2)}
+.pnav .clr{width:auto;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2)}
+.pnav .clr.arm{background:var(--accent);border-color:var(--accent);color:#fff}
+.slot .del{color:var(--ink3)}
+.slot .del.arm{background:var(--accent);border-color:var(--accent);color:#fff}
 .dtabs{display:flex;gap:6px;margin:14px 0 0;overflow-x:auto}
 .dtabs .dt{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;padding:8px 12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--ink2);cursor:pointer;white-space:nowrap}
 .dtabs .dt.on{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -351,7 +355,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-28c";
+var BUILD = "2026-10-28d";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -1128,6 +1132,9 @@ function gridView(a,days,keys){
        '<span>'+esc(fmtDay(gkeys[0]))+(gkeys.length>1?' \u2013 '+esc(fmtDay(gkeys[gkeys.length-1])):'')+
        ' \u00b7 '+gkeys.length+' day'+(gkeys.length===1?'':'s')+'</span>'+
        '<span class="sp" style="margin-left:auto"></span>'+
+       (skippedIn(a,gkeys).length
+         ? '<button class="pbt clr" data-clear="1">Clear '+skippedIn(a,gkeys).length+' skipped</button>'
+         : '')+
        '<i>'+(phaseIdx+1)+' / '+groups.length+'</i>'+
        '<button class="pbt" data-ph="next">\u203a</button>'+
        '</div>';
@@ -1207,6 +1214,7 @@ function slotCard(p){
       (url?'<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Clip</a>':'')+
       '<button class="btn openCard" data-card="'+cardFor(p)+'" title="What this one needs">Assets</button>'+
       '<button class="btn st'+(p.status==="queued"?" on":"")+'">'+(p.status==="queued"?"Queued":"Mark queued")+'</button>'+
+      '<button class="btn del" title="Remove this slot for good">Delete</button>'+
       '<select class="stx" style="width:98px">'+
         ["planned","queued","held","skipped","failed"].map(function(s){
           return '<option value="'+s+'"'+(p.status===s?" selected":"")+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>';}).join("")+
@@ -1285,6 +1293,30 @@ function addSlots(dayIso,specs,srcOverride){
   });
   Promise.all(jobs).then(refresh).then(render).catch(function(){ toast("couldn’t add"); });
 }
+function dayKeysNow(){
+  var d={}; postsOf(vArtist).forEach(function(p){
+    d[dayIsoOf(p.scheduled_for)||"unscheduled"]=1; });
+  return Object.keys(d).sort();
+}
+function skippedIn(a,dayKeys){
+  var on={}; (dayKeys||[]).forEach(function(d){ on[d]=1; });
+  return postsOf(a).filter(function(p){
+    return p.status==="skipped" && on[dayIsoOf(p.scheduled_for)]; });
+}
+function delPosts(list){
+  if(!list.length) return Promise.resolve(0);
+  toast("Deleting "+list.length+" slot"+(list.length===1?"":"s")+"\u2026");
+  return Promise.all(list.map(function(p){
+    return rpc("posting_delete_post",{p_code:code,p_id:p.id||p});
+  })).then(function(){ return refresh(); }).then(function(){
+    selPost=null; render(); toast("deleted "+list.length);
+  }).catch(function(e){
+    toast(String(e&&e.message||e).indexOf("posting_delete_post")>-1
+      ? "delete isn\u2019t installed on the database yet"
+      : "couldn\u2019t delete");
+    throw e;
+  });
+}
 var phaseBusy=false;
 function addPhase(startIso,key){
   var ph=PHASES[key]; if(!ph) return;
@@ -1357,6 +1389,19 @@ function wireBoard(){
     b.onclick=function(){ selPost=b.dataset.sel; render();
       var g=document.querySelector(".gsel"); if(g) g.scrollIntoView({block:"nearest"}); };
   });
+  document.querySelectorAll("[data-clear]").forEach(function(b){
+    b.onclick=function(){
+      if(!b.classList.contains("arm")){
+        b.classList.add("arm"); b.textContent="Sure? click again";
+        setTimeout(function(){ if(b.classList.contains("arm")){
+          b.classList.remove("arm"); render(); } },4000);
+        return;
+      }
+      var grps=phaseGroups(dayKeysNow(),rel(vArtist));
+      var g=grps[phaseIdx]||{days:dayKeysNow()};
+      delPosts(skippedIn(vArtist,g.days)).catch(function(){ render(); });
+    };
+  });
   document.querySelectorAll("[data-ph]").forEach(function(b){
     b.onclick=function(){ phaseIdx += (b.dataset.ph==="next"?1:-1); dayIdx=0; render(); };
   });
@@ -1365,6 +1410,17 @@ function wireBoard(){
   });
   document.querySelectorAll("[data-add]").forEach(function(b){
     b.onclick=function(){ var q=b.dataset.add.split("|"); addSlots(q[0],[[q[1],q[2]]]); };
+  });
+  document.querySelectorAll(".slot .del").forEach(function(b){
+    b.onclick=function(){
+      if(!b.classList.contains("arm")){
+        b.classList.add("arm"); b.textContent="Sure?";
+        setTimeout(function(){ if(b.classList.contains("arm")){
+          b.classList.remove("arm"); b.textContent="Delete"; } },4000);
+        return;
+      }
+      delPosts([b.closest(".slot").dataset.p]).catch(function(){ render(); });
+    };
   });
   document.querySelectorAll(".slot").forEach(function(el){
     var clSel=el.querySelector(".cl");
