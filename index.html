@@ -345,7 +345,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-25d";
+var BUILD = "2026-10-28a";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -462,6 +462,28 @@ var SHAPES = {
   reel:   {label:"Shorts + reel",           build:function(d){ return [
             ["12:00","instagram"],["12:00","youtube"],[ytCampaign(d),"youtube"],["20:00","tiktok"]]; }}
 };
+function dateAdd(iso,n){
+  var p=String(iso).split("-");
+  var d=new Date(+p[0],+p[1]-1,+p[2]); d.setDate(d.getDate()+n);
+  function z(v){ return (v<10?"0":"")+v; }
+  return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate());
+}
+/* Whole-campaign templates. One YouTube reel a day, which is the shape
+   actually being run; the 12:00 evergreen slot is not laid down. */
+var PHASES = {
+  p1: {label:"Phase 1 \u00b7 performance", src:"guest_mix", days:function(s){
+        var d1=dateAdd(s,1), d2=dateAdd(s,2);
+        return [[s,  [["07:00","youtube"],["12:00","instagram"],[ytCampaign(s),"youtube"],["20:00","tiktok"]]],
+                [d1, [[ytCampaign(d1),"youtube"],["20:00","tiktok"]]],
+                [d2, [[ytCampaign(d2),"youtube"],["20:00","tiktok"]]]]; }},
+  p2: {label:"Phase 2 \u00b7 interview", src:"interview", days:function(s){
+        var d1=dateAdd(s,1), d2=dateAdd(s,2), d3=dateAdd(s,3);
+        return [[s,  [["07:00","youtube"],["07:00","spotify"],["12:00","instagram"],[ytCampaign(s),"youtube"],["20:00","tiktok"]]],
+                [d1, [[ytCampaign(d1),"youtube"],["20:00","tiktok"]]],
+                [d2, [["12:00","instagram"],[ytCampaign(d2),"youtube"],["20:00","tiktok"]]],
+                [d3, [[ytCampaign(d3),"youtube"],["20:00","tiktok"]]]]; }}
+};
+
 
 var tEl=document.getElementById("toast"), tT=null;
 function toast(m){ tEl.textContent=m; tEl.classList.add("show");
@@ -1040,7 +1062,11 @@ function boardView(a){
      '<div class="bar" style="margin:0"><input type="date" id="newDay" value="'+
      esc(r.interview_date||r.perf_date||todayIso())+'">'+
      '<button class="btn" id="newSlot">+ One slot</button>'+
-     '<span class="sh" data-new="1">'+shapeBtns("__new__")+'</span></div></div>';
+     '<span class="sh" data-new="1">'+
+       Object.keys(PHASES).map(function(k){
+         return '<button class="btn ph" data-p="'+k+'">+ '+esc(PHASES[k].label)+'</button>';
+       }).join("")+
+       shapeBtns("__new__")+'</span></div></div>';
   return h;
 }
 
@@ -1203,9 +1229,10 @@ function saveSlot(el,reload){
     .then(function(){ toast("saved"); if(reload) return refresh().then(render); })
     .catch(function(){ toast("save failed"); });
 }
-function addSlots(dayIso,specs){
+function addSlots(dayIso,specs,srcOverride){
   var a=vArtist, r=rel(a), cs=clipsOf(a);
-  var src = (dayIso===r.interview_date) ? "interview"
+  var src = srcOverride ? srcOverride
+          : (dayIso===r.interview_date) ? "interview"
           : (dayIso===r.perf_date ? (cs.filter(function(c){return c.source!=="interview";})[0]||{}).source || "performance"
           : (cs[0]?cs[0].source:"interview"));
   var jobs=specs.map(function(s){
@@ -1214,6 +1241,19 @@ function addSlots(dayIso,specs){
       artist_name:a, source:src, status:"planned"}});
   });
   Promise.all(jobs).then(refresh).then(render).catch(function(){ toast("couldn’t add"); });
+}
+function addPhase(startIso,key){
+  var ph=PHASES[key]; if(!ph) return;
+  var jobs=[], a=vArtist;
+  ph.days(startIso).forEach(function(pair){
+    pair[1].forEach(function(sp){
+      jobs.push(rpc("posting_save_post",{p_code:code,p_id:null,p_data:{
+        scheduled_for:tsLocal(pair[0],sp[0]), platform:sp[1],
+        artist_name:a, source:ph.src, status:"planned"}}));
+    });
+  });
+  toast("Adding "+jobs.length+" slots\u2026");
+  Promise.all(jobs).then(refresh).then(render).catch(function(){ toast("couldn\u2019t add"); });
 }
 function wireBoard(){
   document.querySelectorAll(".mkday").forEach(function(b){
@@ -1227,6 +1267,13 @@ function wireBoard(){
       var d=b.dataset.d;
       if(d==="__new__"){ var nd=document.getElementById("newDay"); if(!nd||!nd.value) return; d=nd.value; }
       addSlots(d, SHAPES[b.dataset.s].build(d));
+    };
+  });
+  document.querySelectorAll(".ph").forEach(function(b){
+    b.onclick=function(){
+      var n=document.getElementById("newDay");
+      if(!n||!n.value){ toast("pick a start date first"); return; }
+      addPhase(n.value, b.dataset.p);
     };
   });
   var nd=document.getElementById("newDay");
