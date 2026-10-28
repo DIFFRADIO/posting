@@ -165,6 +165,12 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .gsel{margin-top:16px}
 .gsel .slot{margin:0}
 
+.pnav{display:flex;align-items:center;gap:10px;margin:14px 0 0;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+.pnav b{font-size:13px}
+.pnav span{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink2)}
+.pnav i{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink3);font-style:normal}
+.pnav .pbt{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--radius);width:30px;height:28px;font-size:17px;line-height:1;cursor:pointer}
+.pnav .pbt:hover{background:var(--surface2)}
 .dtabs{display:flex;gap:6px;margin:14px 0 0;overflow-x:auto}
 .dtabs .dt{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;padding:8px 12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--ink2);cursor:pointer;white-space:nowrap}
 .dtabs .dt.on{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -345,7 +351,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-28a";
+var BUILD = "2026-10-28b";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -409,6 +415,27 @@ function roleTime(role,plat,dayIso){
   return plat==="tiktok" ? "20:00" : ytCampaign(dayIso);
 }
 var dayIdx = 0;
+var phaseIdx = 0;
+/* Phase 1 is the performance stage, the mix drop plus the two days after.
+   Phase 2 is the interview stage, the episode plus the three days after.
+   They do not overlap: Sun-Tue, then Wed-Sat. */
+function phaseOf(dayIso,r){
+  if(!r) return 0;
+  if(r.interview_date && dayIso >= r.interview_date) return 2;
+  if(r.perf_date      && dayIso >= r.perf_date)      return 1;
+  return 0;
+}
+var PHASE_LABEL={0:"Before release",1:"Phase 1 \u00b7 performance",2:"Phase 2 \u00b7 interview"};
+function phaseGroups(keys,r){
+  var seen={}, order=[];
+  keys.forEach(function(d){
+    var ph=phaseOf(d,r);
+    if(!seen[ph]){ seen[ph]={ph:ph,days:[]}; order.push(seen[ph]); }
+    seen[ph].days.push(d);
+  });
+  order.sort(function(x,y){ return x.ph-y.ph; });
+  return order;
+}
 function narrow(){ return !!(window.matchMedia && window.matchMedia("(max-width:640px)").matches); }
 var LSOPEN="diff_posting_open";
 var openN={}, q="";
@@ -1085,12 +1112,28 @@ function gridView(a,days,keys){
               ps.filter(function(p){return p.status!=="skipped";})[0].id : (ps[0]&&ps[0].id);
 
   var sm=narrow();
-  if(dayIdx>keys.length-1) dayIdx=0;
-  var cols = sm ? [keys[dayIdx]] : keys;
+  var groups=phaseGroups(keys,rel(a));
+  if(phaseIdx>groups.length-1) phaseIdx=0;
+  if(phaseIdx<0) phaseIdx=groups.length-1;
+  var grp=groups[phaseIdx]||{ph:0,days:keys};
+  var gkeys=grp.days;
+  if(dayIdx>gkeys.length-1) dayIdx=0;
+  var cols = sm ? [gkeys[dayIdx]] : gkeys;
 
   var h='';
-  if(sm && keys.length>1){
-    h+='<div class="dtabs">'+keys.map(function(d,i){
+  if(groups.length>1){
+    h+='<div class="pnav">'+
+       '<button class="pbt" data-ph="prev">\u2039</button>'+
+       '<b>'+esc(PHASE_LABEL[grp.ph]||"Days")+'</b>'+
+       '<span>'+esc(fmtDay(gkeys[0]))+(gkeys.length>1?' \u2013 '+esc(fmtDay(gkeys[gkeys.length-1])):'')+
+       ' \u00b7 '+gkeys.length+' day'+(gkeys.length===1?'':'s')+'</span>'+
+       '<span class="sp" style="margin-left:auto"></span>'+
+       '<i>'+(phaseIdx+1)+' / '+groups.length+'</i>'+
+       '<button class="pbt" data-ph="next">\u203a</button>'+
+       '</div>';
+  }
+  if(sm && gkeys.length>1){
+    h+='<div class="dtabs">'+gkeys.map(function(d,i){
       return '<button class="dt'+(i===dayIdx?" on":"")+'" data-day="'+i+'">'+
         esc(d==="unscheduled"?"No date":fmtDay(d))+'</button>';}).join("")+'</div>';
   }
@@ -1297,6 +1340,9 @@ function wireBoard(){
   document.querySelectorAll("[data-sel]").forEach(function(b){
     b.onclick=function(){ selPost=b.dataset.sel; render();
       var g=document.querySelector(".gsel"); if(g) g.scrollIntoView({block:"nearest"}); };
+  });
+  document.querySelectorAll("[data-ph]").forEach(function(b){
+    b.onclick=function(){ phaseIdx += (b.dataset.ph==="next"?1:-1); dayIdx=0; render(); };
   });
   document.querySelectorAll("[data-day]").forEach(function(b){
     b.onclick=function(){ dayIdx=+b.dataset.day; render(); };
