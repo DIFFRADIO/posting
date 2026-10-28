@@ -351,7 +351,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 var SB  = "https://tgmpgjvvtyhtodltvhbz.supabase.co";
 var KEY = "sb_publishable_-qU9zP_R-s1a6FX_X3PZRw_MGcFVBRK";
 var LS  = "diff_posting_code";
-var BUILD = "2026-10-28b";
+var BUILD = "2026-10-28c";
 
 var code=null, clips=[], posts=[], releases=[];
 var sb=null, session=null, me=null;
@@ -1285,18 +1285,34 @@ function addSlots(dayIso,specs,srcOverride){
   });
   Promise.all(jobs).then(refresh).then(render).catch(function(){ toast("couldn’t add"); });
 }
+var phaseBusy=false;
 function addPhase(startIso,key){
   var ph=PHASES[key]; if(!ph) return;
-  var jobs=[], a=vArtist;
+  if(phaseBusy){ toast("still adding\u2026"); return; }
+  var a=vArtist;
+  var have={};
+  posts.forEach(function(p){
+    if(p.status==="skipped") return;
+    if(String(p.artist_name||"").toLowerCase()!==String(a||"").toLowerCase()) return;
+    have[dayIsoOf(p.scheduled_for)+"|"+hhmm(p.scheduled_for)+"|"+p.platform]=1;
+  });
+  var jobs=[], dupes=0;
   ph.days(startIso).forEach(function(pair){
     pair[1].forEach(function(sp){
+      var k=pair[0]+"|"+sp[0]+"|"+sp[1];
+      if(have[k]){ dupes++; return; }
+      have[k]=1;
       jobs.push(rpc("posting_save_post",{p_code:code,p_id:null,p_data:{
         scheduled_for:tsLocal(pair[0],sp[0]), platform:sp[1],
         artist_name:a, source:ph.src, status:"planned"}}));
     });
   });
-  toast("Adding "+jobs.length+" slots\u2026");
-  Promise.all(jobs).then(refresh).then(render).catch(function(){ toast("couldn\u2019t add"); });
+  if(!jobs.length){ toast(ph.label+" is already laid down"); return; }
+  phaseBusy=true;
+  toast("Adding "+jobs.length+" slots"+(dupes?" \u00b7 "+dupes+" already there":"")+"\u2026");
+  Promise.all(jobs).then(refresh).then(render)
+    .catch(function(){ toast("couldn\u2019t add"); })
+    .then(function(){ phaseBusy=false; });
 }
 function wireBoard(){
   document.querySelectorAll(".mkday").forEach(function(b){
