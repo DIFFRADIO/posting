@@ -388,12 +388,12 @@ function cardFor(p){
   if(p.platform==="spotify") return "spotify";
   var t = hhmm(p.scheduled_for);
   if(p.platform==="instagram") return perf ? "gm_long" : "hoc_long";
-  if(p.platform==="youtube" && t < "09:00") return perf ? "gm_long" : "hoc_long";
+  if(p.platform==="youtube" && t < "10:00") return perf ? "gm_long" : "hoc_long";
   return perf ? "perf_short" : "hoc_short";
 }
 function isLongFormSlot(p){
   if(p.platform==="spotify") return true;
-  return p.platform==="youtube" && hhmm(p.scheduled_for) < "09:00";
+  return p.platform==="youtube" && hhmm(p.scheduled_for) < "10:00";
 }
 function longFormName(p){
   if(p.source==="interview") return "Heart of Cardiff episode";
@@ -414,7 +414,7 @@ var ROWORD={"1spotify":"1a","1youtube":"1b","2instagram":"2a","2youtube":"2b",
             "3youtube":"3a","3tiktok":"3b"};
 function rowKey(role,plat){ return (ROWORD[role+plat]||role+"z")+"|"+role+"|"+plat; }
 function roleTime(role,plat,dayIso){
-  if(role==="1") return "07:00";
+  if(role==="1") return "09:00";
   if(role==="2") return "12:00";
   return plat==="tiktok" ? "20:00" : ytCampaign(dayIso);
 }
@@ -473,7 +473,7 @@ var MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec
 /* Agreed times, 24 Oct.
    Instagram 12:00 every day — against peak, but the field is quieter there and it
    leaves the whole day to push before the evening.
-   Long form and Spotify 07:00. Evergreen YouTube short 12:00.
+   Long form and Spotify 09:00 (moved from 07:00, 14 Nov). Evergreen YouTube short 12:00.
    Campaign YouTube short 19:00 Mon-Fri, 17:00 Sat, 19:30 Sun (on trial).
    TikTok 20:00 every day. */
 function ytCampaign(dayIso){
@@ -483,10 +483,10 @@ function ytCampaign(dayIso){
 }
 var SHAPES = {
   mix:    {label:"Launch \u00b7 mix",       build:function(d){ return [
-            ["07:00","youtube"],["12:00","instagram"],["12:00","youtube"],
+            ["09:00","youtube"],["12:00","instagram"],["12:00","youtube"],
             [ytCampaign(d),"youtube"],["20:00","tiktok"]]; }},
   hoc:    {label:"Launch \u00b7 interview", build:function(d){ return [
-            ["07:00","youtube"],["07:00","spotify"],["12:00","instagram"],["12:00","youtube"],
+            ["09:00","youtube"],["09:00","spotify"],["12:00","instagram"],["12:00","youtube"],
             [ytCampaign(d),"youtube"],["20:00","tiktok"]]; }},
   shorts: {label:"Shorts only",             build:function(d){ return [
             ["12:00","youtube"],[ytCampaign(d),"youtube"],["20:00","tiktok"]]; }},
@@ -504,12 +504,12 @@ function dateAdd(iso,n){
 var PHASES = {
   p1: {label:"Phase 1 \u00b7 performance", src:"guest_mix", days:function(s){
         var d1=dateAdd(s,1), d2=dateAdd(s,2);
-        return [[s,  [["07:00","youtube"],["12:00","instagram"],[ytCampaign(s),"youtube"],["20:00","tiktok"]]],
+        return [[s,  [["09:00","youtube"],["12:00","instagram"],[ytCampaign(s),"youtube"],["20:00","tiktok"]]],
                 [d1, [[ytCampaign(d1),"youtube"],["20:00","tiktok"]]],
                 [d2, [[ytCampaign(d2),"youtube"],["20:00","tiktok"]]]]; }},
   p2: {label:"Phase 2 \u00b7 interview", src:"interview", days:function(s){
         var d1=dateAdd(s,1), d2=dateAdd(s,2), d3=dateAdd(s,3);
-        return [[s,  [["07:00","youtube"],["07:00","spotify"],["12:00","instagram"],[ytCampaign(s),"youtube"],["20:00","tiktok"]]],
+        return [[s,  [["09:00","youtube"],["09:00","spotify"],["12:00","instagram"],[ytCampaign(s),"youtube"],["20:00","tiktok"]]],
                 [d1, [[ytCampaign(d1),"youtube"],["20:00","tiktok"]]],
                 [d2, [["12:00","instagram"],[ytCampaign(d2),"youtube"],["20:00","tiktok"]]],
                 [d3, [[ytCampaign(d3),"youtube"],["20:00","tiktok"]]]]; }}
@@ -1070,7 +1070,7 @@ function boardView(a){
        keys.length+' day'+(keys.length===1?"":"s")+' \u00b7 '+ps.length+' slots</span></div>';
   } else {
     h+='<div class="setup"><p>Nothing on the board for '+esc(a)+' yet. '+
-       'Launch days carry the long form at 07:00; every day carries an evergreen Short at 12:00, '+
+       'Launch days carry the long form at 09:00; every day carries an evergreen Short at 12:00, '+
        'the campaign Short in the evening and TikTok at 20:00. Change any time on the card.</p><div class="bar" style="margin:0">';
     if(r.perf_date)      h+='<button class="btn on mkday" data-d="'+r.perf_date+'" data-s="mix">Set up '+esc(fmtDay(r.perf_date))+'</button>';
     if(r.interview_date) h+='<button class="btn on mkday" data-d="'+r.interview_date+'" data-s="hoc">Set up '+esc(fmtDay(r.interview_date))+'</button>';
