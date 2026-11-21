@@ -345,6 +345,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent);outline:none}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .lfnote{padding:9px 11px;border:1px solid var(--line);border-radius:6px;color:var(--ink2);font-size:13px;background:var(--surface2)}
+.gcs{display:flex;flex-direction:column;min-width:0}.gcs .gc{flex:1}.gcs .gc+.gc{border-top:1px dashed rgba(0,0,0,.15)}
 </style>
 </head>
 <body>
@@ -388,12 +389,16 @@ function cardFor(p){
   if(p.platform==="spotify") return "spotify";
   var t = hhmm(p.scheduled_for);
   if(p.platform==="instagram") return perf ? "gm_long" : "hoc_long";
-  if(p.platform==="youtube" && t < "10:00") return perf ? "gm_long" : "hoc_long";
+  if(isLongFormSlot(p)) return perf ? "gm_long" : "hoc_long";
   return perf ? "perf_short" : "hoc_short";
 }
 function isLongFormSlot(p){
   if(p.platform==="spotify") return true;
-  return p.platform==="youtube" && hhmm(p.scheduled_for) < "10:00";
+  if(p.platform!=="youtube") return false;
+  /* the full upload is marked by its asset, not by its time - a mix can go out at 17:00 */
+  if(p.asset_name || p.asset_path) return true;
+  if(p.clip_id) return false;
+  return hhmm(p.scheduled_for) < "10:00";
 }
 function longFormName(p){
   if(p.source==="interview") return "Heart of Cardiff episode";
@@ -1152,13 +1157,16 @@ function gridView(a,days,keys){
     var tlist=Object.keys(rw.times).sort().join(" \u00b7 ");
     h+='<div class="gl"><b>'+esc(PLAT[rw.plat]||rw.plat)+'</b><span>'+esc(tlist)+'</span></div>';
     cols.forEach(function(d){
-      var p=ps.filter(function(x){ return dayIsoOf(x.scheduled_for)===d &&
-        slotRole(x)===rw.role && x.platform===rw.plat; })[0];
-      if(!p){
+      var cell=ps.filter(function(x){ return dayIsoOf(x.scheduled_for)===d &&
+        slotRole(x)===rw.role && x.platform===rw.plat; })
+        .sort(function(x,y){ return x.scheduled_for<y.scheduled_for?-1:1; });
+      if(!cell.length){
         var at=roleTime(rw.role,rw.plat,d);
         h+='<button class="gc none" type="button" data-add="'+esc(d)+'|'+esc(at)+'|'+esc(rw.plat)+'">+</button>';
         return;
       }
+      h+='<div class="gcs">';
+      cell.forEach(function(p){
       var b=band(p.duration_seconds);
       var cls='gc'+(p.status==="queued"?" ok":"")+(p.status==="skipped"||p.status==="held"?" dead":"")+(p.id===selPost?" sel":"");
       h+='<button class="gc '+cls.slice(3)+'" type="button" data-sel="'+p.id+'">'+
@@ -1168,7 +1176,10 @@ function gridView(a,days,keys){
            (p.duration_seconds? p.duration_seconds+"s" : (isLongFormSlot(p)?"full upload":"no length"))+
            (b&&b.k==="good"?'<i class="pl good">in band</i>':(b?'<i class="pl">'+b.t+'</i>':''))+
            (p.status!=="planned"?'<i class="pl'+(p.status==="queued"?" good":"")+'">'+esc(p.status)+'</i>':'')+
+           '<i class="pl">'+esc(hhmm(p.scheduled_for))+'</i>'+
          '</span></button>';
+      });
+      h+='</div>';
     });
   });
   h+='</div></div>';
